@@ -1,0 +1,4 @@
+# see http://ip-api.com/
+sample-coupon-service:
+  geolocation:
+    endpoint: http://ip-api.com/json/{ipAddr}

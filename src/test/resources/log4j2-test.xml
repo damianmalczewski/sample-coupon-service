@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Original file comes from log4j2-test.xml in org.springframework.boot:spring-boot:4.0.0.
+
+See https://github.com/spring-projects/spring-boot/blob/v4.0.0/core/spring-boot/src/test/resources/log4j2-test.xml
+
+The overrides in this file include adding full %mdc (mapped diagnostic context) at the end of each log message. This way
+it provides semi-structured logs for local development.
+-->
+<Configuration status="warn" name="test">
+    <Properties>
+        <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xwEx{5}</Property>
+        <Property name="LOG_LEVEL_PATTERN">%5p</Property>
+    </Properties>
+    <Appenders>
+        <Console name="STDOUT" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="%clr{%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}}{faint} %clr{${LOG_LEVEL_PATTERN}} %clr{%pid}{magenta} %clr{---}{faint} %clr{[%15.15t]}{faint} %clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%replace{%replace{%mdc}{^\{\}$}{}}{^(.+)$}{ $1}%n${sys:LOG_EXCEPTION_CONVERSION_WORD}"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="STDOUT"/>
+        </Root>
+    </Loggers>
+</Configuration>

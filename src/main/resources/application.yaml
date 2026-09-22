@@ -1,0 +1,75 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: sample-coupon-service
+  main:
+    banner-mode: off
+    keep-alive: true
+  threads:
+    virtual:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 15MB
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sample_coupon
+    username: postgres
+    password: postgres
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    clean-disabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    out-of-order: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  validation:
+    method:
+      adapt-constraint-violations: true
+  web:
+    locale: en
+    locale-resolver: fixed
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,metrics,prometheus"
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.example.samplecoupon: info
+
+problem4j:
+  detail-format: lowercase
+  instance-override: "{context.traceId}"
+  resolver-caching:
+    enabled: true
+
+sample-coupon-service:
+  clock:
+    zone: UTC
+  rest-client:
+    connect-timeout: 300ms
+    read-timeout: 1500ms
+  geolocation:
+    # default value of endpoint binds to a local WireMock instance, prod should use ipapi profile or manual override
+    endpoint: http://localhost:8080/geolocation/{ipAddr}
+  caching:
+    ip-addr-geo-location-ttl: 8h

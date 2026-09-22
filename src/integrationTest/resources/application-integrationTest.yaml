@@ -1,0 +1,14 @@
+spring:
+  cache:
+    type: none
+
+logging:
+  level:
+    com.example.samplecoupon: debug
+
+problem4j:
+  instance-override: ""
+
+sample-coupon-service:
+  geolocation:
+    endpoint: http://localhost:${wiremock.server.port}/wiremock/geolocation/{ipAddr}

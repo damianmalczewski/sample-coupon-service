@@ -1,0 +1,39 @@
+image: eclipse-temurin:25-jdk
+
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  GRADLE_USER_HOME: $CI_PROJECT_DIR/.gradle
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: overlay2
+
+services:
+  - name: docker:24.0.5-dind
+    alias: docker
+
+cache:
+  key:
+    files:
+      - gradle/wrapper/gradle-wrapper.properties
+      - gradle/libs.versions.toml
+  paths:
+    - .gradle/caches
+    - .gradle/wrapper
+
+stages:
+  - build
+
+build:
+  stage: build
+  script:
+    - sleep 5
+    - ./gradlew build
+  artifacts:
+    when: always
+    reports:
+      junit: "build/test-results/*/TEST-*.xml"
+      coverage_report:
+        # Kover emits its XML report in the JaCoCo format.
+        coverage_format: jacoco
+        path: "build/reports/kover/report.xml"
+    expire_in: 1 week

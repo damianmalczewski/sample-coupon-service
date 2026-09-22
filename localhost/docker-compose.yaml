@@ -1,0 +1,70 @@
+name: sample-coupon-service
+
+services:
+
+  postgres:
+    image: postgres:18.6
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sample_coupon
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d sample_coupon" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:8.10
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  wiremock:
+    image: wiremock/wiremock:3.13.2
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1080:8080"
+    networks:
+      - wiremock
+    volumes:
+      - ./wiremock/__files:/home/wiremock/__files:ro
+      - ./wiremock/mappings:/home/wiremock/mappings:ro
+    command: [ "--global-response-templating" ]
+
+  redis-insight:
+    image: redis/redisinsight:3.8
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5540:5540"
+    networks:
+      - redis
+    volumes:
+      - redis_insight_data:/data
+
+networks:
+  postgres:
+  redis:
+  wiremock:
+
+volumes:
+  postgres_data:
+  redis_data:
+  redis_insight_data:

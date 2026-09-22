@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathTemplate": "/geolocation/{ipAddr}"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "countryCode": "PL"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

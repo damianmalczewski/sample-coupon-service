@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.restclient
+package com.example.samplecoupon.infra
 
 import jakarta.validation.constraints.Positive
 import java.time.Duration

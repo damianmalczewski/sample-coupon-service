@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.geolocation
+package com.example.samplecoupon.infra
 
 import com.example.samplecoupon.common.CommonException
 import com.example.samplecoupon.domain.GeoLocation

@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.restclient
+package com.example.samplecoupon.infra
 
 import java.net.http.HttpClient
 import java.util.concurrent.Executors

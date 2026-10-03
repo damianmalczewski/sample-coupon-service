@@ -24,3 +24,5 @@ class CouponCreateUseCase(private val couponRepository: CouponRepository) {
     return Identity(coupon.id!!.toString())
   }
 }
+
+data class CreateCouponCommand(val code: String, val usageLimit: Int, val countryCode: String)

@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.cache
+package com.example.samplecoupon.infra
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.CacheManager

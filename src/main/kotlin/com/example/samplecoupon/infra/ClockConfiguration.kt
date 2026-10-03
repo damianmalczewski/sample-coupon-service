@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.clock
+package com.example.samplecoupon.infra
 
 import java.time.Clock
 import java.time.ZoneId

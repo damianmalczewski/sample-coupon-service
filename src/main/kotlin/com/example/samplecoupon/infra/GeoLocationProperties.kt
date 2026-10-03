@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.geolocation
+package com.example.samplecoupon.infra
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

@@ -2,6 +2,7 @@ package com.example.samplecoupon.usecase
 
 import com.example.samplecoupon.common.PageResult
 import com.example.samplecoupon.domain.CouponRepository
+import java.time.Instant
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
@@ -30,3 +31,11 @@ class CouponQueryUseCase(private val couponRepository: CouponRepository) {
     )
   }
 }
+
+data class CouponDto(
+    val id: String,
+    val code: String,
+    val usageLimit: Int,
+    val usageCount: Int,
+    val createdAt: Instant,
+)

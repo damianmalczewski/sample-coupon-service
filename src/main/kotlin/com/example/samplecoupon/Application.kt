@@ -6,8 +6,8 @@ import org.springframework.boot.runApplication
 
 @ConfigurationPropertiesScan
 @SpringBootApplication //
-class SampleCouponApplication
+class Application
 
 fun main(args: Array<String>) {
-  runApplication<SampleCouponApplication>(*args)
+  runApplication<Application>(*args)
 }

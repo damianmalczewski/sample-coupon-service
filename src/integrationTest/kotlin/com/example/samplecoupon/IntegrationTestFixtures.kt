@@ -27,7 +27,7 @@ import org.wiremock.spring.EnableWireMock
 @ActiveProfiles("integrationTest")
 @Import(ApplicationTestConfiguration::class)
 @SpringBootTest(
-    classes = [SampleCouponApplication::class],
+    classes = [Application::class],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 )
 @AutoConfigureRestTestClient

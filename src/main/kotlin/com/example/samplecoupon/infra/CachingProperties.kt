@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.cache
+package com.example.samplecoupon.infra
 
 import java.time.Duration
 import org.springframework.boot.context.properties.ConfigurationProperties

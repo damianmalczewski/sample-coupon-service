@@ -2,6 +2,8 @@ package com.example.samplecoupon.usecase
 
 import com.example.samplecoupon.domain.CouponRedemptionRepository
 import com.example.samplecoupon.domain.CouponRepository
+import com.example.samplecoupon.domain.GeoLocation
+import java.util.UUID
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -21,3 +23,9 @@ class CouponRedeemUseCase(
     couponRedemptionRepository.insert(redemption)
   }
 }
+
+data class RedeemCouponCommand(
+    val code: String,
+    val userId: UUID,
+    val geoLocation: GeoLocation,
+)

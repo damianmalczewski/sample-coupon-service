@@ -1,10 +1,15 @@
 package com.example.samplecoupon.adapter.rest
 
+import com.example.samplecoupon.common.json.NormalizeFormat
+import com.example.samplecoupon.common.json.NormalizeString
 import com.example.samplecoupon.domain.GeoLocationClient
 import com.example.samplecoupon.usecase.CouponRedeemUseCase
 import com.example.samplecoupon.usecase.RedeemCouponCommand
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Pattern
+import jakarta.validation.constraints.Size
+import java.util.UUID
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.validation.annotation.Validated
@@ -27,14 +32,14 @@ class CouponRedemptionController(
   fun redeemCoupon(
       @RequestBody @Valid requestBody: RedeemCouponRequest,
       request: HttpServletRequest,
-  ) {
+  ) = couponRedeemUseCase.redeemCoupon(requestBody.toCommand(request))
+
+  private fun RedeemCouponRequest.toCommand(request: HttpServletRequest): RedeemCouponCommand {
     val geoLocation = geoLocationClient.findLocation(request.clientIpAddr)
-    couponRedeemUseCase.redeemCoupon(
-        RedeemCouponCommand(
-            code = requestBody.code,
-            userId = requestBody.userId,
-            geoLocation = geoLocation,
-        )
+    return RedeemCouponCommand(
+        code = code,
+        userId = userId,
+        geoLocation = geoLocation,
     )
   }
 
@@ -47,3 +52,13 @@ class CouponRedemptionController(
       }
     }
 }
+
+data class RedeemCouponRequest(
+    //
+    @Size(min = 1, max = 255, message = "size must be between 1 and 255")
+    @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "must be alphanumeric")
+    @NormalizeString(trim = true, normalizeFormat = NormalizeFormat.UPPERCASE) //
+    val code: String,
+    //
+    val userId: UUID,
+)

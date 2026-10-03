@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.web
+package com.example.samplecoupon.infra
 
 import com.example.samplecoupon.common.DomainException
 import com.example.samplecoupon.common.ErrorCategory
@@ -23,11 +23,6 @@ import org.springframework.http.HttpStatusCode
 
 @Configuration
 class ProblemConfiguration {
-
-  @Bean
-  fun extendedProblemContextWebMvcFilter(
-      settings: ProblemContextSettings
-  ): ProblemContextWebMvcFilter = ExtendedProblemContextWebMvcFilter(settings)
 
   @Bean
   fun domainExceptionResolver() =
@@ -64,34 +59,31 @@ class ProblemConfiguration {
     builder.log("An exception occurred within @RestController stack")
   }
 
-  /**
-   * Populates `traceId`, provided by simple tracing feature from `problem4j-spring-webmvc` library
-   * (not `micrometer-tracing`) to logs.
-   */
-  private class ExtendedProblemContextWebMvcFilter(settings: ProblemContextSettings) :
-      ProblemContextWebMvcFilter(settings) {
+  @Bean
+  fun extendedProblemContextWebMvcFilter(settings: ProblemContextSettings) =
+      object : ProblemContextWebMvcFilter(settings) {
 
-    override fun doFilterInternal(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        filterChain: FilterChain,
-    ) {
-      try {
-        super.doFilterInternal(request, response, filterChain)
-      } finally {
-        MDC.remove("traceId")
+        override fun doFilterInternal(
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            filterChain: FilterChain,
+        ) {
+          try {
+            super.doFilterInternal(request, response, filterChain)
+          } finally {
+            MDC.remove("traceId")
+          }
+        }
+
+        override fun assignContextAttributes(
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            context: ProblemContext,
+        ) {
+          super.assignContextAttributes(request, response, context)
+          MDC.put("traceId", context.get("traceId"))
+        }
       }
-    }
-
-    override fun assignContextAttributes(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        context: ProblemContext,
-    ) {
-      super.assignContextAttributes(request, response, context)
-      MDC.put("traceId", context.get("traceId"))
-    }
-  }
 
   private companion object {
     private val log = LoggerFactory.getLogger(ProblemConfiguration::class.java)

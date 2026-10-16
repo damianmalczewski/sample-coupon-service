@@ -1,5 +1,7 @@
 # Sample Coupon Service
 
+[![CI](https://github.com/damianmalczewski/sample-coupon-service/actions/workflows/ci.yml/badge.svg)](https://github.com/damianmalczewski/sample-coupon-service/actions/workflows/ci.yml)
+
 A throwaway application, used as a sandbox for trying out ideas.
 
 ## What it does

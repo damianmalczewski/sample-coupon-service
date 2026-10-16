@@ -51,7 +51,7 @@ interface CouponJpaRepository : CouponRepository, JpaRepository<Coupon, UUID> {
       SET c.usageCount = c.usageCount + 1
       WHERE c.code = :code
         AND c.usageCount < c.usageLimit
-      """
+      """,
   )
   fun lockRedemptionInternal(code: String): Int
 

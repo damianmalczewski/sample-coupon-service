@@ -1,16 +1,27 @@
 name: CI
+
 on:
   workflow_dispatch:
   push:
     branches:
       - "main"
+    paths:
+      - ".github/workflows/ci.yml"
+      - "gradle/**"
+      - "**/src/**"
+      - "**/*.gradle.kts"
+      - "**/gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
   pull_request:
     branches:
       - "main"
+  schedule:
+    - cron: "0 3 * * 0"
 
 jobs:
   build:
-    name: Build (Java 25)
+    name: Build
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -48,3 +59,27 @@ jobs:
             -Dorg.gradle.parallel=false
             -Dorg.gradle.workers.max=1
         run: ./gradlew build
+
+  automerge:
+    name: Dependabot PR Auto-Merge
+    if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Approve PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable Auto-Merge
+        run: |
+          if ! gh pr merge --squash --auto "$PR_URL"; then
+            echo "::warning::Automatic merge (--squash) of dependabot PR failed."
+            exit 1
+          fi
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -6,6 +6,9 @@ import com.example.samplecoupon.usecase.CouponCreateUseCase
 import com.example.samplecoupon.usecase.CouponDto
 import com.example.samplecoupon.usecase.CouponQueryUseCase
 import com.example.samplecoupon.usecase.CreateCouponCommand
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "Coupon API", description = "Create and browse coupons")
 @RestController
 @RequestMapping("/api/v1/coupons")
 @Validated
@@ -32,8 +36,13 @@ class CouponController(
     private val couponCreateUseCase: CouponCreateUseCase,
 ) {
 
+  @Operation(
+      operationId = "listCoupons",
+      summary = "List coupons",
+      description = "Returns a page of coupons with their usage statistics.",
+  )
   @GetMapping(produces = [APPLICATION_JSON_VALUE])
-  fun getCoupons(
+  fun listCoupons(
       @RequestParam(defaultValue = "0")
       @Min(0, message = "must be greater than or equal to 0")
       page: Int,
@@ -43,9 +52,15 @@ class CouponController(
       size: Int,
   ): PageModel<CouponResponse> {
     val result = couponQueryUseCase.queryCoupons(PageRequest.of(page, size))
-    return PageModel.of(result) { it.toResponse() }
+    return result.toPageModel { it.toResponse() }
   }
 
+  @Operation(
+      operationId = "createCoupon",
+      summary = "Create coupon",
+      description =
+          "Creates a coupon with a unique code, usage limit and the country it can be redeemed in.",
+  )
   @PostMapping(consumes = [APPLICATION_JSON_VALUE], produces = [APPLICATION_JSON_VALUE])
   @ResponseStatus(CREATED)
   fun createCoupon(@RequestBody @Valid requestBody: CreateCouponRequest): CreateCouponResponse {
@@ -55,7 +70,7 @@ class CouponController(
                 code = requestBody.code,
                 usageLimit = requestBody.usageLimit,
                 countryCode = requestBody.countryCode,
-            )
+            ),
         )
     return CreateCouponResponse(id = identity.id)
   }
@@ -72,26 +87,31 @@ class CouponController(
 
 data class CreateCouponRequest(
     //
+    @Schema(example = "SUMMER2026")
     @Size(min = 1, max = 255, message = "size must be between 1 and 255")
     @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "must be alphanumeric")
     @NormalizeString(trim = true, normalizeFormat = NormalizeFormat.UPPERCASE) //
     val code: String,
     //
+    @Schema(example = "5")
     @Min(1, message = "must be greater than or equal to 1") //
     val usageLimit: Int,
     //
+    @Schema(example = "PL")
     @Size(min = 1, max = 8, message = "size must be between 1 and 8")
     @Pattern(regexp = "^[a-zA-Z]*$", message = "must be alphabetic")
     @NormalizeString(trim = true, normalizeFormat = NormalizeFormat.UPPERCASE) //
     val countryCode: String,
 )
 
-data class CreateCouponResponse(val id: String)
+data class CreateCouponResponse(
+    @Schema(example = "00000000-0000-0000-0000-000000000000") val id: String,
+)
 
 data class CouponResponse(
-    val id: String,
-    val code: String,
-    val usageLimit: Int,
-    val usageCount: Int,
-    val createdAt: Instant,
+    @Schema(example = "00000000-0000-0000-0000-000000000000") val id: String,
+    @Schema(example = "SUMMER2026") val code: String,
+    @Schema(example = "5") val usageLimit: Int,
+    @Schema(example = "2") val usageCount: Int,
+    @Schema(example = "2026-06-26T12:33:42Z") val createdAt: Instant,
 )

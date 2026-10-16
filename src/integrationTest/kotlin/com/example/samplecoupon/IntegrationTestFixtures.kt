@@ -33,7 +33,7 @@ import org.wiremock.spring.EnableWireMock
 @AutoConfigureRestTestClient
 annotation class ApplicationTest(
     @get:AliasFor(annotation = SpringBootTest::class, attribute = "properties")
-    val properties: Array<String> = []
+    val properties: Array<String> = [],
 )
 
 @TestConfiguration

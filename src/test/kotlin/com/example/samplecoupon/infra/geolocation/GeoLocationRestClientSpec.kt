@@ -16,56 +16,61 @@ import org.springframework.http.MediaType
 import org.springframework.web.client.RestClient
 
 class GeoLocationRestClientSpec :
-    BehaviorSpec({
-      val wireMock = WireMockServer(wireMockConfig().dynamicPort())
+    BehaviorSpec(
+        {
+          val wireMock = WireMockServer(wireMockConfig().dynamicPort())
 
-      beforeSpec { wireMock.start() }
-      afterSpec { wireMock.stop() }
-      beforeEachGiven { wireMock.resetAll() }
+          beforeSpec { wireMock.start() }
+          afterSpec { wireMock.stop() }
+          beforeEachGiven { wireMock.resetAll() }
 
-      fun stubLocation(body: String) {
-        wireMock.stubFor(
-            get(urlPathEqualTo("/location/1.2.3.4"))
-                .willReturn(
-                    aResponse()
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(body)
-                )
-        )
-      }
-
-      fun createClient(): GeoLocationRestClient {
-        val properties = GeoLocationProperties(endpoint = "${wireMock.baseUrl()}/location/{ipAddr}")
-        return GeoLocationRestClient(RestClient.builder().build(), properties)
-      }
-
-      Given("a geolocation service responding with a countryCode") {
-        stubLocation("""{"countryCode":"PL"}""")
-
-        When("finding location") {
-          val result = createClient().findLocation("1.2.3.4")
-
-          Then("it returns GeoLocation with ipAddr and countryCode from response") {
-            result.ipAddr shouldBe "1.2.3.4"
-            result.countryCode shouldBe "PL"
+          fun stubLocation(body: String) {
+            wireMock.stubFor(
+                get(urlPathEqualTo("/location/1.2.3.4"))
+                    .willReturn(
+                        aResponse()
+                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                            .withBody(body),
+                    ),
+            )
           }
-        }
-      }
 
-      withGivens(
-          nameFn = { (description, _) -> "a geolocation service responding with $description" },
-          "a null body" to "null",
-          "no countryCode" to """{"city":"Warsaw"}""",
-          "a non-string countryCode" to """{"countryCode":123}""",
-      ) { (_, body) ->
-        stubLocation(body)
+          fun createClient(): GeoLocationRestClient {
+            val properties =
+                GeoLocationProperties(endpoint = "${wireMock.baseUrl()}/location/{ipAddr}")
+            return GeoLocationRestClient(RestClient.builder().build(), properties)
+          }
 
-        When("finding location") {
-          Then("it throws FailedToLocalizeClient") {
-            shouldThrow<CommonException.FailedToLocalizeClient> {
-              createClient().findLocation("1.2.3.4")
+          Given("a geolocation service responding with a countryCode") {
+            stubLocation("""{"countryCode":"PL"}""")
+
+            When("finding location") {
+              val result = createClient().findLocation("1.2.3.4")
+
+              Then("it returns GeoLocation with ipAddr and countryCode from response") {
+                result.ipAddr shouldBe "1.2.3.4"
+                result.countryCode shouldBe "PL"
+              }
             }
           }
-        }
-      }
-    })
+
+          withGivens(
+              nameFn = { (description, _) ->
+                "a geolocation service responding with $description"
+              },
+              "a null body" to "null",
+              "no countryCode" to """{"city":"Warsaw"}""",
+              "a non-string countryCode" to """{"countryCode":123}""",
+          ) { (_, body) ->
+            stubLocation(body)
+
+            When("finding location") {
+              Then("it throws FailedToLocalizeClient") {
+                shouldThrow<CommonException.FailedToLocalizeClient> {
+                  createClient().findLocation("1.2.3.4")
+                }
+              }
+            }
+          }
+        },
+    )

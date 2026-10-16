@@ -130,7 +130,7 @@ tasks.withType<Test>().configureEach {
 
     systemProperty("user.language", "en")
     systemProperty("user.country", "US")
-    systemProperty("spring.test.context.cache.maxSize", 5)
+    systemProperty("spring.test.context.cache.maxSize", 1)
 }
 
 kover {
@@ -192,13 +192,13 @@ idea {
                     moduleName = "sample-coupon-service.test"
                     workingDirectory = rootProject.rootDir.absolutePath
                     packageName = "com.example.samplecoupon"
-                    vmParameters = "-Dspring.test.context.cache.maxSize=5"
+                    vmParameters = "-Dspring.test.context.cache.maxSize=1"
                 }
                 create<JUnit>("Test [sample-coupon-service|integrationTest]") {
                     moduleName = "sample-coupon-service.integrationTest"
                     workingDirectory = rootProject.rootDir.absolutePath
                     packageName = "com.example.samplecoupon"
-                    vmParameters = "-Dspring.test.context.cache.maxSize=5"
+                    vmParameters = "-Dspring.test.context.cache.maxSize=1"
                 }
             }
         }
@@ -226,7 +226,7 @@ spotless {
         target("**/src/**/*.kt")
         targetExclude("**/build/**")
 
-        ktfmt().configure {
+        ktfmt().metaStyle().configure {
             it.setMaxWidth(100)
             it.setRemoveUnusedImports(true)
         }

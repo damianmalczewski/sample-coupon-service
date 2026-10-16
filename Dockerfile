@@ -9,7 +9,10 @@ ENV LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs
 
 EXPOSE 8080
 
-COPY ./build/libs/sample-coupon-service-*-exec.jar /app/sample-coupon-service.jar
+# Release version of the jar to copy; leave unset for a local build, where the jar has no version in its name
+ARG VERSION
+
+COPY ./build/libs/sample-coupon-service${VERSION:+-$VERSION}-exec.jar /app/sample-coupon-service.jar
 
 ENV JAVA_OPTS_DEFAULT="\
 -XX:+UseContainerSupport \

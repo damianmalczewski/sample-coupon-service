@@ -2,6 +2,13 @@ name: CI
 
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        description: "Release version to build with; when set, the exec jar is uploaded as an artifact"
+        type: string
+        required: false
+        default: ""
   push:
     branches:
       - "main"
@@ -21,7 +28,7 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Build on Java 25
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -58,7 +65,25 @@ jobs:
             -Dorg.gradle.daemon=false
             -Dorg.gradle.parallel=false
             -Dorg.gradle.workers.max=1
-        run: ./gradlew build
+          VERSION: ${{ inputs.version }}
+        run: ./gradlew build ${VERSION:+"-Pversion=$VERSION"}
+
+      - name: Upload coverage report to Codecov
+        if: github.event_name == 'push'
+        uses: codecov/codecov-action@v7
+        with:
+          files: ./build/reports/kover/report.xml
+          disable_search: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload Exec Jar
+        if: inputs.version != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: exec-jar
+          path: build/libs/*-exec.jar
+          if-no-files-found: error
+          retention-days: 1
 
   automerge:
     name: Dependabot PR Auto-Merge

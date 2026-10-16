@@ -6,8 +6,8 @@ import com.example.samplecoupon.domain.Coupon
 import com.example.samplecoupon.domain.CouponException
 import com.example.samplecoupon.domain.CouponRedemption
 import com.example.samplecoupon.domain.GeoLocation
-import com.example.samplecoupon.infra.data.CouponJpaRepository
-import com.example.samplecoupon.infra.data.CouponRedemptionJpaRepository
+import com.example.samplecoupon.infra.repository.CouponJpaRepository
+import com.example.samplecoupon.infra.repository.CouponRedemptionJpaRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe

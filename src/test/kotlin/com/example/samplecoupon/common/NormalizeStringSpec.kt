@@ -1,7 +1,5 @@
 package com.example.samplecoupon.common
 
-import com.example.samplecoupon.common.json.NormalizeFormat
-import com.example.samplecoupon.common.json.NormalizeString
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.datatest.withGivens
 import io.kotest.matchers.shouldBe

@@ -3,7 +3,7 @@ package com.example.samplecoupon.usecase
 import com.example.samplecoupon.ApplicationTest
 import com.example.samplecoupon.beforeEachGiven
 import com.example.samplecoupon.domain.Coupon
-import com.example.samplecoupon.infra.data.CouponJpaRepository
+import com.example.samplecoupon.infra.repository.CouponJpaRepository
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.datatest.withWhens
 import io.kotest.matchers.collections.shouldHaveSize

@@ -4,7 +4,7 @@ import com.example.samplecoupon.ApplicationTest
 import com.example.samplecoupon.beforeEachGiven
 import com.example.samplecoupon.domain.Coupon
 import com.example.samplecoupon.domain.CouponError
-import com.example.samplecoupon.infra.data.CouponJpaRepository
+import com.example.samplecoupon.infra.repository.CouponJpaRepository
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.datatest.withGivens
 import io.kotest.matchers.nulls.shouldNotBeNull

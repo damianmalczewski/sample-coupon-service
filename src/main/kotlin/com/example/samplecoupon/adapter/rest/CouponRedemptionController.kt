@@ -1,7 +1,7 @@
 package com.example.samplecoupon.adapter.rest
 
-import com.example.samplecoupon.common.json.NormalizeFormat
-import com.example.samplecoupon.common.json.NormalizeString
+import com.example.samplecoupon.common.NormalizeFormat
+import com.example.samplecoupon.common.NormalizeString
 import com.example.samplecoupon.domain.GeoLocationClient
 import com.example.samplecoupon.usecase.CouponRedeemUseCase
 import com.example.samplecoupon.usecase.RedeemCouponCommand

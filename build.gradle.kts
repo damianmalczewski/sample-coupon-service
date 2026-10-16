@@ -36,9 +36,6 @@ allOpen {
 }
 
 dependencies {
-    annotationProcessor(platform(libs.spring.boot.dependencies))
-    annotationProcessor(libs.spring.boot.configuration.processor)
-
     implementation(platform(libs.junit.bom))
     implementation(platform(libs.kotlin.bom))
     implementation(platform(libs.problem4j.spring.bom))
@@ -174,14 +171,14 @@ idea {
         settings {
             runConfigurations {
                 create<Application>("Run [sample-coupon-service]") {
-                    mainClass = "com.example.samplecoupon.SampleCouponApplicationKt"
+                    mainClass = "com.example.samplecoupon.ApplicationKt"
                     moduleName = "sample-coupon-service.main"
                     workingDirectory = rootProject.rootDir.absolutePath
                     jvmArgs = "-Dspring.profiles.active=ipapi -Dlogging.level.com.example.samplecoupon=debug"
                     programParameters = ""
                 }
                 create<Application>("Run [sample-coupon-service|localhost]") {
-                    mainClass = "com.example.samplecoupon.SampleCouponApplicationKt"
+                    mainClass = "com.example.samplecoupon.ApplicationKt"
                     moduleName = "sample-coupon-service.main"
                     workingDirectory = rootProject.rootDir.absolutePath
                     jvmArgs = "-Dspring.profiles.active=wiremock -Dlogging.level.com.example.samplecoupon=debug"

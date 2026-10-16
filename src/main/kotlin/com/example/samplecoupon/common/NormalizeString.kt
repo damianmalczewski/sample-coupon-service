@@ -1,12 +1,33 @@
-package com.example.samplecoupon.common.json
+package com.example.samplecoupon.common
 
+import com.fasterxml.jackson.annotation.JacksonAnnotationsInside
 import tools.jackson.core.JsonParser
 import tools.jackson.databind.BeanProperty
 import tools.jackson.databind.DeserializationContext
 import tools.jackson.databind.ValueDeserializer
+import tools.jackson.databind.annotation.JsonDeserialize
 import tools.jackson.databind.deser.std.StdDeserializer
 
-class NormalizeStringDeserializer(
+/**
+ * Custom annotation to normalize string values during JSON deserialization. It provides options to
+ * trim whitespace and to convert the string to either lowercase or uppercase.
+ */
+@Target(AnnotationTarget.FIELD)
+@Retention(AnnotationRetention.RUNTIME)
+@JacksonAnnotationsInside
+@JsonDeserialize(using = NormalizeStringDeserializer::class)
+annotation class NormalizeString(
+    val trim: Boolean = false,
+    val normalizeFormat: NormalizeFormat = NormalizeFormat.DEFAULT,
+)
+
+enum class NormalizeFormat {
+  DEFAULT,
+  LOWERCASE,
+  UPPERCASE,
+}
+
+private class NormalizeStringDeserializer(
     private val trim: Boolean = false,
     private val normalizeFormat: NormalizeFormat = NormalizeFormat.DEFAULT,
 ) : StdDeserializer<String?>(String::class.java) {

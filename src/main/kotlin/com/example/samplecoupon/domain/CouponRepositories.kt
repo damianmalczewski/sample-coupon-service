@@ -33,3 +33,14 @@ interface CouponRepository {
    */
   fun lockRedemption(code: String)
 }
+
+interface CouponRedemptionRepository {
+
+  /**
+   * Persists coupon redemption record. Enforces one redemption per user per coupon via unique
+   * constraint.
+   *
+   * @throws CouponException.CouponUsageLimitReached if user already redeemed this coupon
+   */
+  fun insert(couponRedemption: CouponRedemption): CouponRedemption
+}

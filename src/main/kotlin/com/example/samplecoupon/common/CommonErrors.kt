@@ -7,3 +7,8 @@ enum class CommonError(override val category: ErrorCategory, override val detail
       "failed to establish client localization",
   ),
 }
+
+sealed class CommonException(error: CommonError) : DomainException(error) {
+
+  class FailedToLocalizeClient : CommonException(CommonError.FAILED_TO_LOCALIZE_CLIENT)
+}

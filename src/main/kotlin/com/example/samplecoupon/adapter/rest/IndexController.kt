@@ -10,6 +10,8 @@ class IndexController {
 
   @GetMapping
   fun index(): String {
-    return "redirect:/swagger-ui/index.html"
+    return "redirect:${SWAGGER_UI_PATH}"
   }
 }
+
+private const val SWAGGER_UI_PATH = "/swagger-ui/index.html"

@@ -14,88 +14,95 @@ import org.springframework.data.domain.PageRequest
 
 @ApplicationTest
 class CouponQueryUseCaseSpec(couponRepository: CouponJpaRepository, useCase: CouponQueryUseCase) :
-    BehaviorSpec({
-      beforeEachGiven { couponRepository.deleteAll() }
+    BehaviorSpec(
+        {
+          beforeEachGiven { couponRepository.deleteAll() }
 
-      Given("five coupons") {
-        couponRepository.saveAll(
-            listOf(
-                Coupon(code = "WINTER", usageLimit = 10, countryCode = "PL"),
-                Coupon(code = "SPRING", usageLimit = 20, countryCode = "GB"),
-                Coupon(code = "SUMMER", usageLimit = 30, countryCode = "US"),
-                Coupon(code = "AUTUMN", usageLimit = 40, countryCode = "DE"),
-                Coupon(code = "HOLIDAY", usageLimit = 50, countryCode = "FR"),
-            )
-        )
-
-        When("querying the first page of size 2") {
-          val result = useCase.queryCoupons(PageRequest.of(0, 2))
-
-          Then("it returns the page metadata") {
-            result.content shouldHaveSize 2
-            result.page shouldBe 0
-            result.size shouldBe 2
-            result.totalElements shouldBe 5L
-          }
-
-          Then("it maps the first coupon to DTO") {
-            val first = result.content[0]
-            first.id.shouldNotBeNull()
-            first.code shouldBe "WINTER"
-            first.usageLimit shouldBe 10
-            first.usageCount shouldBe 0
-            first.createdAt.shouldNotBeNull()
-          }
-        }
-
-        When("querying all coupons in a single page") {
-          val result = useCase.queryCoupons(PageRequest.of(0, 10))
-
-          Then("it returns all coupons in insertion order") {
-            result.content.map { it.code } shouldBe
-                listOf("WINTER", "SPRING", "SUMMER", "AUTUMN", "HOLIDAY")
-            result.page shouldBe 0
-            result.size shouldBe 10
-            result.totalElements shouldBe 5L
-          }
-        }
-
-        withWhens(
-            nameFn = { (page, size, _) -> "querying page $page of size $size" },
-            Triple(1, 2, 2),
-            Triple(2, 2, 1),
-            Triple(0, 3, 3),
-            Triple(10, 2, 0),
-        ) { (page, size, expectedCount) ->
-          val result = useCase.queryCoupons(PageRequest.of(page, size))
-
-          Then("it returns $expectedCount coupons out of 5") {
-            result.content shouldHaveSize expectedCount
-            result.page shouldBe page
-            result.size shouldBe size
-            result.totalElements shouldBe 5L
-          }
-        }
-      }
-
-      Given("a single coupon with usage") {
-        val entity =
-            couponRepository.save(
-                Coupon(code = "TEST", usageLimit = 100, usageCount = 25, countryCode = "PL")
+          Given("five coupons") {
+            couponRepository.saveAll(
+                listOf(
+                    Coupon(code = "WINTER", usageLimit = 10, countryCode = "PL"),
+                    Coupon(code = "SPRING", usageLimit = 20, countryCode = "GB"),
+                    Coupon(code = "SUMMER", usageLimit = 30, countryCode = "US"),
+                    Coupon(code = "AUTUMN", usageLimit = 40, countryCode = "DE"),
+                    Coupon(code = "HOLIDAY", usageLimit = 50, countryCode = "FR"),
+                ),
             )
 
-        When("querying coupons") {
-          val result = useCase.queryCoupons(PageRequest.of(0, 10))
+            When("querying the first page of size 2") {
+              val result = useCase.queryCoupons(PageRequest.of(0, 2))
 
-          Then("it maps all entity fields to DTO") {
-            val dto = result.content.single()
-            dto.id shouldBe entity.id!!.toString()
-            dto.code shouldBe "TEST"
-            dto.usageLimit shouldBe 100
-            dto.usageCount shouldBe 25
-            dto.createdAt.truncatedTo(ChronoUnit.MILLIS) shouldBe
-                entity.createdAt!!.truncatedTo(ChronoUnit.MILLIS)
+              Then("it returns the page metadata") {
+                result.content shouldHaveSize 2
+                result.page shouldBe 0
+                result.size shouldBe 2
+                result.totalElements shouldBe 5L
+              }
+
+              Then("it maps the first coupon to DTO") {
+                val first = result.content[0]
+                first.id.shouldNotBeNull()
+                first.code shouldBe "WINTER"
+                first.usageLimit shouldBe 10
+                first.usageCount shouldBe 0
+                first.createdAt.shouldNotBeNull()
+              }
+            }
+
+            When("querying all coupons in a single page") {
+              val result = useCase.queryCoupons(PageRequest.of(0, 10))
+
+              Then("it returns all coupons in insertion order") {
+                result.content.map { it.code } shouldBe
+                    listOf("WINTER", "SPRING", "SUMMER", "AUTUMN", "HOLIDAY")
+                result.page shouldBe 0
+                result.size shouldBe 10
+                result.totalElements shouldBe 5L
+              }
+            }
+
+            withWhens(
+                nameFn = { (page, size, _) -> "querying page $page of size $size" },
+                Triple(1, 2, 2),
+                Triple(2, 2, 1),
+                Triple(0, 3, 3),
+                Triple(10, 2, 0),
+            ) { (page, size, expectedCount) ->
+              val result = useCase.queryCoupons(PageRequest.of(page, size))
+
+              Then("it returns $expectedCount coupons out of 5") {
+                result.content shouldHaveSize expectedCount
+                result.page shouldBe page
+                result.size shouldBe size
+                result.totalElements shouldBe 5L
+              }
+            }
           }
-        }
-      }
-    })
+
+          Given("a single coupon with usage") {
+            val entity =
+                couponRepository.save(
+                    Coupon(
+                        code = "TEST",
+                        usageLimit = 100,
+                        usageCount = 25,
+                        countryCode = "PL",
+                    ),
+                )
+
+            When("querying coupons") {
+              val result = useCase.queryCoupons(PageRequest.of(0, 10))
+
+              Then("it maps all entity fields to DTO") {
+                val dto = result.content.single()
+                dto.id shouldBe entity.id!!.toString()
+                dto.code shouldBe "TEST"
+                dto.usageLimit shouldBe 100
+                dto.usageCount shouldBe 25
+                dto.createdAt.truncatedTo(ChronoUnit.MILLIS) shouldBe
+                    entity.createdAt!!.truncatedTo(ChronoUnit.MILLIS)
+              }
+            }
+          }
+        },
+    )

@@ -87,17 +87,17 @@ class ProblemConfiguration {
 
   private companion object {
     private val log = LoggerFactory.getLogger(ProblemConfiguration::class.java)
-
-    private val ErrorType.status: HttpStatus
-      get() =
-          when (category) {
-            ErrorCategory.BAD_REQUEST -> HttpStatus.BAD_REQUEST
-            ErrorCategory.NOT_FOUND -> HttpStatus.NOT_FOUND
-            ErrorCategory.CONFLICT -> HttpStatus.CONFLICT
-            ErrorCategory.INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR
-          }
-
-    private val Problem.httpStatus: HttpStatusCode
-      get() = HttpStatusCode.valueOf(status)
   }
 }
+
+private val ErrorType.status: HttpStatus
+  get() =
+      when (category) {
+        ErrorCategory.BAD_REQUEST -> HttpStatus.BAD_REQUEST
+        ErrorCategory.NOT_FOUND -> HttpStatus.NOT_FOUND
+        ErrorCategory.CONFLICT -> HttpStatus.CONFLICT
+        ErrorCategory.INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR
+      }
+
+private val Problem.httpStatus: HttpStatusCode
+  get() = HttpStatusCode.valueOf(status)

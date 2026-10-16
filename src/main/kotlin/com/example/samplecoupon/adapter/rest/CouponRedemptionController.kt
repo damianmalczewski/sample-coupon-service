@@ -5,6 +5,9 @@ import com.example.samplecoupon.common.NormalizeString
 import com.example.samplecoupon.domain.GeoLocationClient
 import com.example.samplecoupon.usecase.CouponRedeemUseCase
 import com.example.samplecoupon.usecase.RedeemCouponCommand
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Pattern
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "Coupon Redemption API", description = "Redeem coupons on behalf of users")
 @RestController
 @RequestMapping("/api/v1/coupon-redemptions")
 @Validated
@@ -27,6 +31,12 @@ class CouponRedemptionController(
     private val geoLocationClient: GeoLocationClient,
 ) {
 
+  @Operation(
+      operationId = "redeemCoupon",
+      summary = "Redeem coupon",
+      description =
+          "Redeems a coupon for a user. The client's country is resolved from its IP address and must match the coupon's country.",
+  )
   @PostMapping(consumes = [APPLICATION_JSON_VALUE], produces = [APPLICATION_JSON_VALUE])
   @ResponseStatus(CREATED)
   fun redeemCoupon(
@@ -55,10 +65,12 @@ class CouponRedemptionController(
 
 data class RedeemCouponRequest(
     //
+    @Schema(example = "SUMMER2026")
     @Size(min = 1, max = 255, message = "size must be between 1 and 255")
     @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "must be alphanumeric")
     @NormalizeString(trim = true, normalizeFormat = NormalizeFormat.UPPERCASE) //
     val code: String,
     //
+    @Schema(example = "00000000-0000-0000-0000-000000000000") //
     val userId: UUID,
 )

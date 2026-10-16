@@ -8,4 +8,6 @@ fun main(args: Array<String>) {
   runApplication<Application>(*args)
 }
 
-@ConfigurationPropertiesScan @SpringBootApplication class Application
+@ConfigurationPropertiesScan
+@SpringBootApplication //
+class Application

@@ -1,6 +1,6 @@
 # Sample Coupon Service
 
-A coupon service, used as a sandbox for trying out ideas.
+A throwaway application, used as a sandbox for trying out ideas.
 
 ## What it does
 
@@ -10,15 +10,7 @@ A coupon service, used as a sandbox for trying out ideas.
 - Geolocation responses cached in Redis to cut down external API calls.
 - Flyway-managed PostgreSQL schema.
 
-## Layout
-
-A single Gradle project - no subprojects, no `build-logic`. Everything lives under `src/`:
-
-| Source set        | Purpose                                                 |
-|-------------------|---------------------------------------------------------|
-| `main`            | The application - coupon REST API and Flyway migrations |
-| `test`            | Unit tests                                              |
-| `integrationTest` | Testcontainers-backed integration tests                 |
+## Development
 
 Useful Gradle commands:
 
@@ -35,7 +27,7 @@ Useful Gradle commands:
 
 ## Poking at the design
 
-A mix of vertical-slices, screaming and semi-clean architecture
+A mix of vertical-slices, screaming and semi-clean architecture.
 
 - _"a mix"_ meaning that it has no strict rules and the architecture was formed in order to explore different styles,
 - _"semi"_ meaning JPA annotations are allowed in domain classes, since adding a mapping layer just for this project's
@@ -83,7 +75,7 @@ beyond a laptop.
 
 - **PostgreSQL** - primary database.
 - **Redis** - geolocation response cache.
-- **ip-api.com** - translates client IP to country.
+- **ip-api.com** - translates client IP to country. Can use WireMock on `localhost`.
 - **Docker** - needed for local services and Testcontainers.
 
 The `localhost/` directory has a `docker-compose.yaml` that spins up all dependencies, including a pre-configured

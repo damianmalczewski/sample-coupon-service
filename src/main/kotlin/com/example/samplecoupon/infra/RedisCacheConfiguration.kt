@@ -29,7 +29,7 @@ class RedisCacheConfiguration {
     return RedisCacheManager.builder(connectionFactory)
         .cacheDefaults(rootConfig)
         .withInitialCacheConfigurations(
-            mapOf("ipAddrGeoLocation" to rootConfig.entryTtl(properties.ipAddrGeoLocationTtl))
+            mapOf("ipAddrGeoLocation" to rootConfig.entryTtl(properties.ipAddrGeoLocationTtl)),
         )
         .build()
   }

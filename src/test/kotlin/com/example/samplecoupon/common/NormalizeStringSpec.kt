@@ -4,13 +4,14 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.datatest.withGivens
 import io.kotest.matchers.shouldBe
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.readValue
 
 class NormalizeStringSpec :
     BehaviorSpec(
         {
           val mapper = JsonMapper.builder().build()
 
-          fun read(json: String): Fixture = mapper.readValue(json, Fixture::class.java)
+          fun read(json: String): Fixture = mapper.readValue<Fixture>(json)
 
           Given("a field with default normalization") {
             When("deserializing a padded mixed-case value") {

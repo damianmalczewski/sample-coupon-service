@@ -19,6 +19,7 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 import org.springframework.jdbc.core.JdbcOperations
+import org.springframework.jdbc.core.queryForObject
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 
@@ -51,12 +52,11 @@ class CouponRedeemConcurrentSpec(
 
           /** Number of backends in current database blocked on a row/tuple lock. */
           fun lockWaitersCount(): Int =
-              jdbc.queryForObject(
+              jdbc.queryForObject<Int>(
                   """
                   SELECT count(*) FROM pg_stat_activity
                   WHERE datname = current_database() AND wait_event_type = 'Lock'
                   """,
-                  Int::class.java,
               )!!
 
           /**

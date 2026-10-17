@@ -54,10 +54,13 @@ private class NormalizeStringDeserializer(
       ctxt: DeserializationContext,
       property: BeanProperty,
   ): ValueDeserializer<*> {
-    val normalize = property.getAnnotation(NormalizeString::class.java)
+    val normalize = property.getAnnotation<NormalizeString>()
     return NormalizeStringDeserializer(
         trim = normalize?.trim ?: false,
         normalizeFormat = normalize?.normalizeFormat ?: NormalizeFormat.DEFAULT,
     )
   }
 }
+
+private inline fun <reified T : Annotation> BeanProperty.getAnnotation(): T? =
+    getAnnotation(T::class.java)

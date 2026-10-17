@@ -79,7 +79,7 @@ class ArchitectureSpec :
             Then("use case services reside in the usecase package") {
               classes()
                   .that()
-                  .areAnnotatedWith(Service::class.java)
+                  .areAnnotatedWith<Service>()
                   .should()
                   .resideInAPackage("$ROOT.usecase..")
                   .check(classes)
@@ -88,9 +88,9 @@ class ArchitectureSpec :
             Then("controllers reside in the adapter rest package") {
               classes()
                   .that()
-                  .areAnnotatedWith(RestController::class.java)
+                  .areAnnotatedWith<RestController>()
                   .or()
-                  .areAnnotatedWith(Controller::class.java)
+                  .areAnnotatedWith<Controller>()
                   .should()
                   .resideInAPackage("$ROOT.adapter.rest..")
                   .check(classes)
@@ -99,7 +99,7 @@ class ArchitectureSpec :
             Then("spring configuration classes reside in the infra package") {
               classes()
                   .that()
-                  .areAnnotatedWith(Configuration::class.java)
+                  .areAnnotatedWith<Configuration>()
                   .should()
                   .resideInAPackage("$ROOT.infra..")
                   .check(classes)

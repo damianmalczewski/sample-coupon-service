@@ -1,7 +1,9 @@
 # Sample Coupon Service
 
 [![CI](https://github.com/damianmalczewski/sample-coupon-service/actions/workflows/ci.yml/badge.svg)](https://github.com/damianmalczewski/sample-coupon-service/actions/workflows/ci.yml)
-[![Codecov](https://codecov.io/gh/damianmalczewski/sample-coupon-service/graph/badge.svg?token=R90DKC1C2M)](https://codecov.io/gh/damianmalczewski/sample-coupon-service)
+[![Release](https://github.com/damianmalczewski/sample-coupon-service/actions/workflows/release.yml/badge.svg)](https://github.com/damianmalczewski/sample-coupon-service/actions/workflows/release.yml)
+[![Version](https://img.shields.io/github/v/release/damianmalczewski/sample-coupon-service?logo=github&label=Version)](https://github.com/damianmalczewski/sample-coupon-service/releases/latest)
+[![Codecov](https://codecov.io/gh/damianmalczewski/sample-coupon-service/branch/main/graph/badge.svg?token=R90DKC1C2M)](https://codecov.io/gh/damianmalczewski/sample-coupon-service)
 
 A throwaway application, used as a sandbox for trying out ideas.
 

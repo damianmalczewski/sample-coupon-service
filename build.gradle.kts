@@ -36,7 +36,6 @@ allOpen {
 }
 
 dependencies {
-    implementation(platform(libs.junit.bom))
     implementation(platform(libs.kotlin.bom))
     implementation(platform(libs.problem4j.spring.bom))
     implementation(platform(libs.spring.boot.dependencies))
@@ -61,9 +60,9 @@ dependencies {
 
     runtimeOnly(libs.postgresql)
 
+    testImplementation(platform(libs.junit.bom))
     testImplementation(platform(libs.kotest.bom))
 
-    testImplementation(libs.archunit)
     testImplementation(libs.spring.boot.starter.actuator.test)
     testImplementation(libs.spring.boot.starter.data.jpa.test)
     testImplementation(libs.spring.boot.starter.data.redis.test)
@@ -78,6 +77,8 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.extensions.spring)
     testImplementation(libs.kotest.runner.junit6)
+
+    testImplementation(libs.archunit)
     testImplementation(libs.testclock)
     testImplementation(libs.wiremock.spring.boot.standalone)
 

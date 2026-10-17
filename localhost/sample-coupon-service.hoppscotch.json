@@ -1,0 +1,153 @@
+{
+  "v": 12,
+  "name": "sample-coupon-service",
+  "folders": [
+    {
+      "v": 12,
+      "name": "coupons",
+      "folders": [],
+      "requests": [
+        {
+          "v": "17",
+          "endpoint": "http://localhost:8080/api/v1/coupons",
+          "name": "/coupons",
+          "params": [],
+          "headers": [],
+          "method": "GET",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "endpoint": "http://localhost:8080/api/v1/coupons?code=<<couponCode>>",
+          "name": "/coupons?code=...",
+          "params": [],
+          "headers": [],
+          "method": "GET",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "endpoint": "http://localhost:8080/api/v1/coupons",
+          "name": "/coupons",
+          "params": [],
+          "headers": [],
+          "method": "POST",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "var couponCounter = parseInt(pw.env.get(\"couponCounter\"));\nif (isNaN(couponCounter)) {\n  couponCounter = 0\n}\n\ncouponCounter += 1;\n\npw.env.set(\"couponCounter\", couponCounter.toString())\npw.env.set(\"couponCode\", \"QWERTY\" + couponCounter)\n",
+          "testScript": "pw.env.set(\"createdCouponId\", pw.response.body[\"id\"]);\n",
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"code\": \"<<couponCode>>\",\n  \"countryCode\": \"PL\",\n  \"usageLimit\": 5\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "endpoint": "http://localhost:8080/api/v1/coupons/<<createdCouponId>>",
+          "name": "/coupons/:id",
+          "params": [],
+          "headers": [],
+          "method": "GET",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null,
+      "preRequestScript": "",
+      "testScript": ""
+    },
+    {
+      "v": 12,
+      "name": "coupon-redemptions",
+      "folders": [],
+      "requests": [
+        {
+          "v": "17",
+          "endpoint": "http://localhost:8080/api/v1/coupon-redemptions",
+          "name": "/coupon-redemptions",
+          "params": [],
+          "headers": [],
+          "method": "POST",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"code\": \"QWERTY9\",\n  \"userId\": \"00000000-0000-0000-0000-000000000001\"\n}var couponCounter = parseInt(pw.env.get(\"couponCounter\"));\nif (isNaN(couponCounter)) {\n  couponCounter = 0\n}\n\ncouponCounter += 1;\n\npw.env.set(\"couponCounter\", couponCounter.toString())\npw.env.set(\"couponCode\", \"QWERTY\" + couponCounter)\nvar couponCounter = parseInt(pw.env.get(\"couponCounter\"));\nif (isNaN(couponCounter)) {\n  couponCounter = 0\n}\n\ncouponCounter += 1;\n\npw.env.set(\"couponCounter\", couponCounter.toString())\npw.env.set(\"couponCode\", \"QWERTY\" + couponCounter)\nvar couponCounter = parseInt(pw.env.get(\"couponCounter\"));\nif (isNaN(couponCounter)) {\n  couponCounter = 0\n}\n\ncouponCounter += 1;\n\npw.env.set(\"couponCounter\", couponCounter.toString())\npw.env.set(\"couponCode\", \"QWERTY\" + couponCounter)\nvar couponCounter = parseInt(pw.env.get(\"couponCounter\"));\nif (isNaN(couponCounter)) {\n  couponCounter = 0\n}\n\ncouponCounter += 1;\n\npw.env.set(\"couponCounter\", couponCounter.toString())\npw.env.set(\"couponCode\", \"QWERTY\" + couponCounter)\n"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null,
+      "preRequestScript": "",
+      "testScript": ""
+    }
+  ],
+  "requests": [],
+  "headers": [],
+  "auth": {
+    "authType": "none",
+    "authActive": true
+  },
+  "variables": [],
+  "description": "",
+  "preRequestScript": "",
+  "testScript": ""
+}

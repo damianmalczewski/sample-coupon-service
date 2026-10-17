@@ -12,12 +12,17 @@ import org.springframework.transaction.annotation.Transactional
 class CouponQueryUseCase(private val couponRepository: CouponRepository) {
 
   @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
-  fun queryCoupons(pageable: Pageable): PageResult<CouponDto> {
-    val page = couponRepository.findAll(pageable)
+  fun queryCoupons(query: CouponsQuery): PageResult<CouponListItemDto> {
+    val page =
+        if (query.code == null) {
+          couponRepository.findAll(query.pageable)
+        } else {
+          couponRepository.findAllByCode(query.code, query.pageable)
+        }
     return PageResult(
         content =
             page.content.map {
-              CouponDto(
+              CouponListItemDto(
                   id = it.id!!.toString(),
                   code = it.code,
                   usageLimit = it.usageLimit,
@@ -32,7 +37,12 @@ class CouponQueryUseCase(private val couponRepository: CouponRepository) {
   }
 }
 
-data class CouponDto(
+data class CouponsQuery(
+    val pageable: Pageable,
+    val code: String? = null,
+)
+
+data class CouponListItemDto(
     val id: String,
     val code: String,
     val usageLimit: Int,

@@ -17,6 +17,16 @@ interface CouponJpaRepository : CouponRepository, JpaRepository<Coupon, UUID> {
   @Query("SELECT c FROM Coupon c ORDER BY c.createdAt ASC")
   override fun findAll(pageable: Pageable): Page<Coupon>
 
+  override fun findAllByCode(code: String, pageable: Pageable): Page<Coupon> =
+      findAllByCodeInternal(code.uppercase(), pageable)
+
+  @Query("SELECT c FROM Coupon c WHERE c.code = :code ORDER BY c.createdAt ASC")
+  fun findAllByCodeInternal(code: String, pageable: Pageable): Page<Coupon>
+
+  override fun fetchById(id: UUID): Coupon {
+    return findById(id).orElseThrow { CouponException.CouponByIdNotExists() }
+  }
+
   override fun fetchByCode(code: String): Coupon {
     return findByCodeInternal(code.uppercase()) ?: throw CouponException.CouponByCodeNotExists()
   }

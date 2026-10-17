@@ -30,7 +30,7 @@ class CouponQueryUseCaseSpec(couponRepository: CouponJpaRepository, useCase: Cou
             )
 
             When("querying the first page of size 2") {
-              val result = useCase.queryCoupons(PageRequest.of(0, 2))
+              val result = useCase.queryCoupons(CouponsQuery(PageRequest.of(0, 2)))
 
               Then("it returns the page metadata") {
                 result.content shouldHaveSize 2
@@ -50,7 +50,7 @@ class CouponQueryUseCaseSpec(couponRepository: CouponJpaRepository, useCase: Cou
             }
 
             When("querying all coupons in a single page") {
-              val result = useCase.queryCoupons(PageRequest.of(0, 10))
+              val result = useCase.queryCoupons(CouponsQuery(PageRequest.of(0, 10)))
 
               Then("it returns all coupons in insertion order") {
                 result.content.map { it.code } shouldBe
@@ -61,6 +61,24 @@ class CouponQueryUseCaseSpec(couponRepository: CouponJpaRepository, useCase: Cou
               }
             }
 
+            When("querying coupons by code in different case") {
+              val result = useCase.queryCoupons(CouponsQuery(PageRequest.of(0, 10), "summer"))
+
+              Then("it returns only the matching coupon") {
+                result.content.map { it.code } shouldBe listOf("SUMMER")
+                result.totalElements shouldBe 1L
+              }
+            }
+
+            When("querying coupons by unknown code") {
+              val result = useCase.queryCoupons(CouponsQuery(PageRequest.of(0, 10), "UNKNOWN"))
+
+              Then("it returns empty page") {
+                result.content shouldHaveSize 0
+                result.totalElements shouldBe 0L
+              }
+            }
+
             withWhens(
                 nameFn = { (page, size, _) -> "querying page $page of size $size" },
                 Triple(1, 2, 2),
@@ -68,7 +86,7 @@ class CouponQueryUseCaseSpec(couponRepository: CouponJpaRepository, useCase: Cou
                 Triple(0, 3, 3),
                 Triple(10, 2, 0),
             ) { (page, size, expectedCount) ->
-              val result = useCase.queryCoupons(PageRequest.of(page, size))
+              val result = useCase.queryCoupons(CouponsQuery(PageRequest.of(page, size)))
 
               Then("it returns $expectedCount coupons out of 5") {
                 result.content shouldHaveSize expectedCount
@@ -91,7 +109,7 @@ class CouponQueryUseCaseSpec(couponRepository: CouponJpaRepository, useCase: Cou
                 )
 
             When("querying coupons") {
-              val result = useCase.queryCoupons(PageRequest.of(0, 10))
+              val result = useCase.queryCoupons(CouponsQuery(PageRequest.of(0, 10)))
 
               Then("it maps all entity fields to DTO") {
                 val dto = result.content.single()

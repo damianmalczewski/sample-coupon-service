@@ -1,5 +1,6 @@
 package com.example.samplecoupon.domain
 
+import java.util.UUID
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
@@ -7,6 +8,19 @@ interface CouponRepository {
 
   /** Returns coupons ordered by creation date ascending. */
   fun findAll(pageable: Pageable): Page<Coupon>
+
+  /**
+   * Returns coupons matching given code, ordered by creation date ascending. Lookup is
+   * case-insensitive; code matched uppercase. As codes are unique, page holds at most one coupon.
+   */
+  fun findAllByCode(code: String, pageable: Pageable): Page<Coupon>
+
+  /**
+   * Fetches coupon by id.
+   *
+   * @throws CouponException.CouponByIdNotExists if no coupon with given id exists
+   */
+  fun fetchById(id: UUID): Coupon
 
   /**
    * Fetches coupon by code. Lookup is case-insensitive; code matched uppercase.

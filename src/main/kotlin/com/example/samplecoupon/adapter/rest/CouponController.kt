@@ -4,8 +4,12 @@ import com.example.samplecoupon.common.NormalizeFormat
 import com.example.samplecoupon.common.NormalizeString
 import com.example.samplecoupon.usecase.CouponCreateUseCase
 import com.example.samplecoupon.usecase.CouponDto
+import com.example.samplecoupon.usecase.CouponFetchUseCase
+import com.example.samplecoupon.usecase.CouponListItemDto
 import com.example.samplecoupon.usecase.CouponQueryUseCase
+import com.example.samplecoupon.usecase.CouponsQuery
 import com.example.samplecoupon.usecase.CreateCouponCommand
+import com.example.samplecoupon.usecase.FetchCouponQuery
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -15,11 +19,13 @@ import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import java.time.Instant
+import java.util.UUID
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -33,13 +39,15 @@ import org.springframework.web.bind.annotation.RestController
 @Validated
 class CouponController(
     private val couponQueryUseCase: CouponQueryUseCase,
+    private val couponFetchUseCase: CouponFetchUseCase,
     private val couponCreateUseCase: CouponCreateUseCase,
 ) {
 
   @Operation(
       operationId = "listCoupons",
       summary = "List coupons",
-      description = "Returns a page of coupons with their usage statistics.",
+      description =
+          "Returns a page of coupons with their usage statistics. Optionally filtered by coupon code (case-insensitive).",
   )
   @GetMapping(produces = [APPLICATION_JSON_VALUE])
   fun listCoupons(
@@ -50,10 +58,27 @@ class CouponController(
       @Min(1, message = "must be greater than or equal to 1")
       @Max(500, message = "must be less than or equal to 500")
       size: Int,
-  ): PageModel<CouponResponse> {
-    val result = couponQueryUseCase.queryCoupons(PageRequest.of(page, size))
-    return result.toPageModel { it.toResponse() }
+      @RequestParam(required = false)
+      @Schema(example = "SUMMER2026")
+      @Size(min = 1, max = 255, message = "size must be between 1 and 255")
+      @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "must be alphanumeric")
+      code: String?,
+  ): PageModel<CouponListItem> {
+    val result =
+        couponQueryUseCase.queryCoupons(
+            CouponsQuery(pageable = PageRequest.of(page, size), code = code),
+        )
+    return result.toPageModel { it.toListItem() }
   }
+
+  @Operation(
+      operationId = "getCoupon",
+      summary = "Get coupon",
+      description = "Returns a single coupon with its usage statistics.",
+  )
+  @GetMapping("/{id}", produces = [APPLICATION_JSON_VALUE])
+  fun getCoupon(@PathVariable id: UUID): CouponResponse =
+      couponFetchUseCase.fetchCoupon(FetchCouponQuery(id = id)).toResponse()
 
   @Operation(
       operationId = "createCoupon",
@@ -75,12 +100,22 @@ class CouponController(
     return CreateCouponResponse(id = identity.id)
   }
 
+  private fun CouponListItemDto.toListItem(): CouponListItem =
+      CouponListItem(
+          id = id,
+          code = code,
+          usageLimit = usageLimit,
+          usageCount = usageCount,
+          createdAt = createdAt,
+      )
+
   private fun CouponDto.toResponse(): CouponResponse =
       CouponResponse(
           id = id,
           code = code,
           usageLimit = usageLimit,
           usageCount = usageCount,
+          countryCode = countryCode,
           createdAt = createdAt,
       )
 }
@@ -108,10 +143,19 @@ data class CreateCouponResponse(
     @Schema(example = "00000000-0000-0000-0000-000000000000") val id: String,
 )
 
+data class CouponListItem(
+    @Schema(example = "00000000-0000-0000-0000-000000000000") val id: String,
+    @Schema(example = "SUMMER2026") val code: String,
+    @Schema(example = "5") val usageLimit: Int,
+    @Schema(example = "2") val usageCount: Int,
+    @Schema(example = "2026-06-26T12:33:42Z") val createdAt: Instant,
+)
+
 data class CouponResponse(
     @Schema(example = "00000000-0000-0000-0000-000000000000") val id: String,
     @Schema(example = "SUMMER2026") val code: String,
     @Schema(example = "5") val usageLimit: Int,
     @Schema(example = "2") val usageCount: Int,
+    @Schema(example = "PL") val countryCode: String,
     @Schema(example = "2026-06-26T12:33:42Z") val createdAt: Instant,
 )

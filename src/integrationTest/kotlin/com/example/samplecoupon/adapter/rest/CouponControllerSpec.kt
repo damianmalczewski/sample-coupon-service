@@ -9,6 +9,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.datatest.withGivens
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import java.util.UUID
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.RestTestClient
 import org.springframework.test.web.servlet.client.expectBody
@@ -17,15 +18,18 @@ import org.springframework.test.web.servlet.client.expectBody
 class CouponControllerSpec(restClient: RestTestClient, couponRepository: CouponJpaRepository) :
     BehaviorSpec(
         {
+          lateinit var coupons: List<Coupon>
+
           beforeEachGiven {
             couponRepository.deleteAll()
-            couponRepository.saveAll(
-                listOf(
-                    Coupon(code = "WINTER", usageLimit = 10, countryCode = "PL"),
-                    Coupon(code = "SPRING", usageLimit = 20, countryCode = "GB"),
-                    Coupon(code = "SUMMER", usageLimit = 30, countryCode = "US"),
-                ),
-            )
+            coupons =
+                couponRepository.saveAll(
+                    listOf(
+                        Coupon(code = "WINTER", usageLimit = 10, countryCode = "PL"),
+                        Coupon(code = "SPRING", usageLimit = 20, countryCode = "GB"),
+                        Coupon(code = "SUMMER", usageLimit = 30, countryCode = "US"),
+                    ),
+                )
           }
 
           fun createCoupon(body: Map<String, *>) =
@@ -55,6 +59,73 @@ class CouponControllerSpec(restClient: RestTestClient, couponRepository: CouponJ
               val response = restClient.get().uri("/api/v1/coupons?page=0&size=2").exchange()
 
               Then("it returns 200") { response.expectStatus().isOk() }
+            }
+
+            When("GET coupons filtered by code in different case") {
+              val response = restClient.get().uri("/api/v1/coupons?code=spring").exchange()
+
+              Then("it returns 200 with only the matching coupon") {
+                response.expectStatus().isOk().expectBody<Map<String, *>>().value { body ->
+                  val content = body!!["content"] as List<*>
+                  content.map { (it as Map<*, *>)["code"] } shouldBe listOf("SPRING")
+                  (content.single() as Map<*, *>).keys shouldBe
+                      setOf("id", "code", "usageLimit", "usageCount", "createdAt")
+                  body["totalElements"] shouldBe 1
+                }
+              }
+            }
+
+            When("GET coupons filtered by unknown code") {
+              val response = restClient.get().uri("/api/v1/coupons?code=UNKNOWN").exchange()
+
+              Then("it returns 200 with empty page") {
+                response.expectStatus().isOk().expectBody<Map<String, *>>().value { body ->
+                  body!!["content"] shouldBe emptyList<Any>()
+                  body["totalElements"] shouldBe 0
+                }
+              }
+            }
+
+            When("GET coupon by existing id") {
+              val coupon = coupons[1]
+              val response = restClient.get().uri("/api/v1/coupons/${coupon.id}").exchange()
+
+              Then("it returns 200 with the coupon") {
+                response.expectStatus().isOk().expectBody<Map<String, *>>().value { body ->
+                  body!!.keys shouldBe
+                      setOf("id", "code", "usageLimit", "usageCount", "countryCode", "createdAt")
+                  body["id"] shouldBe coupon.id.toString()
+                  body["code"] shouldBe "SPRING"
+                  body["usageLimit"] shouldBe 20
+                  body["usageCount"] shouldBe 0
+                  body["countryCode"] shouldBe "GB"
+                }
+              }
+            }
+
+            When("GET coupon by unknown id") {
+              val response = restClient.get().uri("/api/v1/coupons/${UUID.randomUUID()}").exchange()
+
+              Then("it returns 404") {
+                response
+                    .expectStatus()
+                    .isNotFound()
+                    .expectBody<Map<String, *>>()
+                    .isEqualTo(
+                        mapOf(
+                            "title" to "Not Found",
+                            "status" to 404,
+                            "detail" to CouponError.COUPON_BY_ID_NOT_EXISTS.detail,
+                            "code" to CouponError.COUPON_BY_ID_NOT_EXISTS.name,
+                        ),
+                    )
+              }
+            }
+
+            When("GET coupon by malformed id") {
+              val response = restClient.get().uri("/api/v1/coupons/not-a-uuid").exchange()
+
+              Then("it returns 400") { response.expectStatus().isBadRequest() }
             }
 
             When("POST create coupon with valid request") {
@@ -100,6 +171,9 @@ class CouponControllerSpec(restClient: RestTestClient, couponRepository: CouponJ
               Triple("size", "-1", "must be greater than or equal to 1"),
               Triple("size", "0", "must be greater than or equal to 1"),
               Triple("size", "501", "must be less than or equal to 500"),
+              Triple("code", "", "size must be between 1 and 255"),
+              Triple("code", "a".repeat(256), "size must be between 1 and 255"),
+              Triple("code", "-12", "must be alphanumeric"),
           ) { (param, value, error) ->
             When("GET coupons") {
               val response = restClient.get().uri("/api/v1/coupons?$param=$value").exchange()

@@ -5,6 +5,7 @@ RUN apk add --no-cache curl
 WORKDIR /app
 
 ENV SERVER_PORT=8080
+# Structured console log format (ecs, gelf, logstash); set to empty for the plain text pattern layout
 ENV LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs
 
 EXPOSE 8080
@@ -28,4 +29,8 @@ ENV APP_ARGS=""
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8080/actuator/health/liveness || exit 1
 
-CMD ["/bin/sh", "-c", "exec java $JAVA_OPTS_DEFAULT $JAVA_OPTS_EXTRA -jar /app/sample-coupon-service.jar $APP_ARGS"]
+CMD ["/bin/sh", "-c", "\
+if [ -z \"$LOGGING_STRUCTURED_FORMAT_CONSOLE\" ]; then \
+  unset LOGGING_STRUCTURED_FORMAT_CONSOLE; \
+fi; \
+exec java $JAVA_OPTS_DEFAULT $JAVA_OPTS_EXTRA -jar /app/sample-coupon-service.jar $APP_ARGS"]

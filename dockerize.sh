@@ -8,4 +8,4 @@ set -euo pipefail
 
 ./gradlew build -x check
 
-docker build -t sample-coupon-service:latest .
+docker build -t ghcr.io/damianmalczewski/sample-coupon-service:latest .

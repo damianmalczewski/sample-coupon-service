@@ -1,0 +1,81 @@
+name: coupons-compose
+
+# Standalone deployment of the service with its dependencies. Only the service itself is published on the host;
+# PostgreSQL, Redis and WireMock are reachable only from inside the compose networks.
+
+services:
+
+  sample-coupon-service:
+    image: ghcr.io/damianmalczewski/sample-coupon-service:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - postgres
+      - redis
+      - wiremock
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sample_coupon
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ""
+      SAMPLE_COUPON_SERVICE_GEOLOCATION_ENDPOINT: http://wiremock:8080/geolocation/{ipAddr}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      wiremock:
+        condition: service_started
+
+  postgres:
+    image: postgres:18.6
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sample_coupon
+    networks:
+      - postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d sample_coupon" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:8.10
+    restart: unless-stopped
+    networks:
+      - redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  wiremock:
+    image: wiremock/wiremock:3.13.2
+    restart: unless-stopped
+    networks:
+      - wiremock
+    volumes:
+      - ./wiremock/mappings:/home/wiremock/mappings:ro
+    command: [ "--global-response-templating" ]
+
+networks:
+  postgres:
+  redis:
+  wiremock:
+
+volumes:
+  postgres_data:
+  redis_data:
+  redis_insight_data:

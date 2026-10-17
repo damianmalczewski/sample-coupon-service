@@ -5,6 +5,7 @@ import com.example.samplecoupon.common.ErrorCategory
 import com.example.samplecoupon.common.ErrorType
 import io.github.problem4j.core.Problem
 import io.github.problem4j.core.ProblemContext
+import io.github.problem4j.spring.web.AttributeSupport
 import io.github.problem4j.spring.web.ProblemContextSettings
 import io.github.problem4j.spring.web.resolver.problemResolver
 import io.github.problem4j.spring.webmvc.ProblemContextWebMvcFilter
@@ -60,29 +61,10 @@ class ProblemConfiguration {
   }
 
   @Bean
-  fun extendedProblemContextWebMvcFilter(settings: ProblemContextSettings) =
-      object : ProblemContextWebMvcFilter(settings) {
-
-        override fun doFilterInternal(
-            request: HttpServletRequest,
-            response: HttpServletResponse,
-            filterChain: FilterChain,
-        ) {
-          try {
-            super.doFilterInternal(request, response, filterChain)
-          } finally {
-            MDC.remove("traceId")
-          }
-        }
-
-        override fun assignContextAttributes(
-            request: HttpServletRequest,
-            response: HttpServletResponse,
-            context: ProblemContext,
-        ) {
-          super.assignContextAttributes(request, response, context)
-          MDC.put("traceId", context.get("traceId"))
-        }
+  fun problemContextWebMvcFilter(settings: ProblemContextSettings) =
+      problemContextWebMvcFilter(settings) {
+        onContext { _, _, context -> MDC.put("traceId", context.get("traceId")) }
+        onComplete { _, _, _ -> MDC.remove("traceId") }
       }
 
   private companion object {
@@ -101,3 +83,60 @@ private val ErrorType.status: HttpStatus
 
 private val Problem.httpStatus: HttpStatusCode
   get() = HttpStatusCode.valueOf(status)
+
+// TODO: Simplified backport of `io.github.problem4j.spring.webmvc.problemContextWebMvcFilter` and
+//  `io.github.problem4j.spring.webmvc.problemContext`, which are not available in problem4j-spring
+//  3.1.0-M1. Delete declarations below and import the library ones instead after upgrading
+//  problem4j-spring to 3.1.0 (call sites stay the same).
+
+private class ProblemContextWebMvcFilterSpec {
+
+  val contextCallbacks =
+      mutableListOf<(HttpServletRequest, HttpServletResponse, ProblemContext) -> Unit>()
+  val completeCallbacks =
+      mutableListOf<(HttpServletRequest, HttpServletResponse, ProblemContext) -> Unit>()
+
+  fun onContext(callback: (HttpServletRequest, HttpServletResponse, ProblemContext) -> Unit) {
+    contextCallbacks.add(callback)
+  }
+
+  fun onComplete(callback: (HttpServletRequest, HttpServletResponse, ProblemContext) -> Unit) {
+    completeCallbacks.add(callback)
+  }
+}
+
+private fun problemContextWebMvcFilter(
+    settings: ProblemContextSettings,
+    configure: ProblemContextWebMvcFilterSpec.() -> Unit,
+): ProblemContextWebMvcFilter {
+  val spec = ProblemContextWebMvcFilterSpec().apply(configure)
+  return object : ProblemContextWebMvcFilter(settings) {
+
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        filterChain: FilterChain,
+    ) {
+      try {
+        super.doFilterInternal(request, response, filterChain)
+      } finally {
+        val context = request.problemContext
+        if (context != null) {
+          spec.completeCallbacks.forEach { it(request, response, context) }
+        }
+      }
+    }
+
+    override fun assignContextAttributes(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        context: ProblemContext,
+    ) {
+      super.assignContextAttributes(request, response, context)
+      spec.contextCallbacks.forEach { it(request, response, context) }
+    }
+  }
+}
+
+private val HttpServletRequest.problemContext: ProblemContext?
+  get() = getAttribute(AttributeSupport.PROBLEM_CONTEXT_ATTRIBUTE) as? ProblemContext

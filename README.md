@@ -58,7 +58,7 @@ Redemption uses an atomic `UPDATE` for row reservation:
 fun attemptToRedeemInternal(code: String): Int
 ```
 
-0 rows affected means coupon exhausted or at limit, so transaction rolled back. Otherwise, no concurrent transactions
+Zero rows affected means coupon exhausted or at limit, so transaction rolled back. Otherwise, concurrent transactions
 will wait upon reaching this method until current one concludes.
 
 ### Error handling

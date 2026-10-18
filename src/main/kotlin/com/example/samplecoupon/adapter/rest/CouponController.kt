@@ -1,5 +1,11 @@
 package com.example.samplecoupon.adapter.rest
 
+import com.example.samplecoupon.adapter.ValidCountryCode
+import com.example.samplecoupon.adapter.ValidCouponCode
+import com.example.samplecoupon.adapter.ValidCouponId
+import com.example.samplecoupon.adapter.ValidCouponUsageLimit
+import com.example.samplecoupon.adapter.ValidQueryPage
+import com.example.samplecoupon.adapter.ValidQuerySize
 import com.example.samplecoupon.common.NormalizeFormat
 import com.example.samplecoupon.common.NormalizeString
 import com.example.samplecoupon.usecase.CouponCreateUseCase
@@ -14,10 +20,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import jakarta.validation.constraints.Max
-import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.Pattern
-import jakarta.validation.constraints.Size
 import java.time.Instant
 import java.util.UUID
 import org.springframework.data.domain.PageRequest
@@ -51,17 +53,11 @@ class CouponController(
   )
   @GetMapping(produces = [APPLICATION_JSON_VALUE])
   fun listCoupons(
-      @RequestParam(defaultValue = "0")
-      @Min(0, message = "must be greater than or equal to 0")
-      page: Int,
-      @RequestParam(defaultValue = "20")
-      @Min(1, message = "must be greater than or equal to 1")
-      @Max(500, message = "must be less than or equal to 500")
-      size: Int,
+      @RequestParam(defaultValue = "0") @ValidQueryPage page: Int,
+      @RequestParam(defaultValue = "20") @ValidQuerySize size: Int,
       @RequestParam(required = false)
       @Schema(example = "SUMMER2026")
-      @Size(min = 1, max = 255, message = "size must be between 1 and 255")
-      @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "must be alphanumeric")
+      @ValidCouponCode
       code: String?,
   ): PageModel<CouponListItem> {
     val result =
@@ -77,8 +73,8 @@ class CouponController(
       description = "Returns a single coupon with its usage statistics.",
   )
   @GetMapping("/{id}", produces = [APPLICATION_JSON_VALUE])
-  fun getCoupon(@PathVariable id: UUID): CouponResponse =
-      couponFetchUseCase.fetchCoupon(FetchCouponQuery(id = id)).toResponse()
+  fun getCoupon(@PathVariable @ValidCouponId id: String): CouponResponse =
+      couponFetchUseCase.fetchCoupon(FetchCouponQuery(id = UUID.fromString(id))).toResponse()
 
   @Operation(
       operationId = "createCoupon",
@@ -123,19 +119,17 @@ class CouponController(
 data class CreateCouponRequest(
     //
     @Schema(example = "SUMMER2026")
-    @Size(min = 1, max = 255, message = "size must be between 1 and 255")
-    @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "must be alphanumeric")
-    @NormalizeString(trim = true, normalizeFormat = NormalizeFormat.UPPERCASE) //
+    @NormalizeString(trim = true, normalizeFormat = NormalizeFormat.UPPERCASE)
+    @ValidCouponCode
     val code: String,
     //
     @Schema(example = "5")
-    @Min(1, message = "must be greater than or equal to 1") //
+    @ValidCouponUsageLimit //
     val usageLimit: Int,
     //
     @Schema(example = "PL")
-    @Size(min = 1, max = 8, message = "size must be between 1 and 8")
-    @Pattern(regexp = "^[a-zA-Z]*$", message = "must be alphabetic")
-    @NormalizeString(trim = true, normalizeFormat = NormalizeFormat.UPPERCASE) //
+    @NormalizeString(trim = true, normalizeFormat = NormalizeFormat.UPPERCASE)
+    @ValidCountryCode
     val countryCode: String,
 )
 

@@ -15,6 +15,10 @@ import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
 import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
 import kotlin.reflect.KClass
 
+private const val UUID_REGEXP =
+    "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+private const val UUID_MESSAGE = "must be a UUID"
+
 @Min(0, message = "must be greater than or equal to 0")
 @Constraint(validatedBy = [])
 @Target(FIELD, VALUE_PARAMETER, PROPERTY_GETTER, ANNOTATION_CLASS)
@@ -36,17 +40,6 @@ annotation class ValidQuerySize(
     val payload: Array<KClass<out Payload>> = [],
 )
 
-@Size(min = 1, max = 255, message = "size must be between 1 and 255")
-@Pattern(regexp = "^[a-zA-Z0-9]*$", message = "must be alphanumeric")
-@Constraint(validatedBy = [])
-@Target(FIELD, VALUE_PARAMETER, PROPERTY_GETTER, ANNOTATION_CLASS)
-@Retention(RUNTIME)
-annotation class ValidCouponCode(
-    val message: String = "",
-    val groups: Array<KClass<*>> = [],
-    val payload: Array<KClass<out Payload>> = [],
-)
-
 @Size(min = 1, max = 8, message = "size must be between 1 and 8")
 @Pattern(regexp = "^[a-zA-Z]*$", message = "must be alphabetic")
 @Constraint(validatedBy = [])
@@ -58,23 +51,18 @@ annotation class ValidCountryCode(
     val payload: Array<KClass<out Payload>> = [],
 )
 
-@Pattern(
-    regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-    message = "must be a UUID",
-)
+@Size(min = 1, max = 255, message = "size must be between 1 and 255")
+@Pattern(regexp = "^[a-zA-Z0-9]*$", message = "must be alphanumeric")
 @Constraint(validatedBy = [])
 @Target(FIELD, VALUE_PARAMETER, PROPERTY_GETTER, ANNOTATION_CLASS)
 @Retention(RUNTIME)
-annotation class ValidUserId(
+annotation class ValidCouponCode(
     val message: String = "",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = [],
 )
 
-@Pattern(
-    regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-    message = "must be a UUID",
-)
+@Pattern(regexp = UUID_REGEXP, message = UUID_MESSAGE)
 @Constraint(validatedBy = [])
 @Target(FIELD, VALUE_PARAMETER, PROPERTY_GETTER, ANNOTATION_CLASS)
 @Retention(RUNTIME)
@@ -89,6 +77,16 @@ annotation class ValidCouponId(
 @Target(FIELD, VALUE_PARAMETER, PROPERTY_GETTER, ANNOTATION_CLASS)
 @Retention(RUNTIME)
 annotation class ValidCouponUsageLimit(
+    val message: String = "",
+    val groups: Array<KClass<*>> = [],
+    val payload: Array<KClass<out Payload>> = [],
+)
+
+@Pattern(regexp = UUID_REGEXP, message = UUID_MESSAGE)
+@Constraint(validatedBy = [])
+@Target(FIELD, VALUE_PARAMETER, PROPERTY_GETTER, ANNOTATION_CLASS)
+@Retention(RUNTIME)
+annotation class ValidUserId(
     val message: String = "",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = [],

@@ -26,6 +26,13 @@ on:
   schedule:
     - cron: "0 3 * * 0"
 
+concurrency:
+  # Only pull request runs share a group, so a new push cancels the previous build of the same PR. Every other run -
+  # main pushes, schedule, manual and calls from release.yml (which share the caller's GitHub context) - gets a
+  # unique group and is never canceled.
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build on Java 25

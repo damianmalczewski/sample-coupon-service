@@ -1,0 +1,39 @@
+# Publishes the docs/ folder to the GitHub wiki, so the repository is the single source of the documentation.
+#
+# One-way sync: the wiki content is replaced with docs/ on every publish, edits made in the wiki are lost. The action
+# renames docs/README.md to Home.md and rewrites ./Page.md links to wiki links.
+#
+# The wiki's Git repository exists only after its first page is created, so before the first run create any page
+# manually in the repository's Wiki tab - it gets overwritten by the publish.
+
+name: Wiki
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+    paths:
+      - ".github/workflows/wiki.yml"
+      - "docs/**"
+
+concurrency:
+  group: wiki
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  publish:
+    name: Publish Wiki
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Publish docs to Wiki
+        uses: Andrew-Chen-Wang/github-wiki-action@v5
+        with:
+          path: docs

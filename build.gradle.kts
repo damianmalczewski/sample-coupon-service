@@ -26,6 +26,7 @@ kotlin {
     compilerOptions {
         javaParameters = true
         freeCompilerArgs.addAll("-Xjsr305=strict")
+        moduleName = project.name
     }
 }
 
@@ -164,9 +165,11 @@ tasks.named<BootJar>("bootJar").configure {
 tasks.withType<Jar>().configureEach {
     manifest {
         attributes["Implementation-Title"] = project.name
-        attributes["Implementation-Version"] = project.version
+        attributes["Implementation-Version"] = readProjectVersion()
     }
 }
+
+fun readProjectVersion(): Any = project.version.takeIf { it != Project.DEFAULT_VERSION } ?: "0.0.0-SNAPSHOT"
 
 idea {
     project {

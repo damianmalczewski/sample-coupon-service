@@ -70,6 +70,19 @@ GitHub Actions workflows in `.github/workflows/`:
 Releases follow the cactus model: `main` holds the newest version line, older lines get patches on `release/X.Y.x`
 branches. Image tags: `X.Y.Z`, `X.Y`, `X` (highest of its major only) and `latest` (from `main` only).
 
+### Releasing
+
+A release is never triggered by a push or a tag - it has to be started by hand:
+
+1. Open the [Release workflow][release-workflow] page in GitHub Actions.
+2. Click **Run workflow** and pick the branch to release from - `main` for the newest version line, or
+   `release/X.Y.x` for a patch of an older one.
+3. Choose which part of the version to bump - `patch`, `minor` or `major` (only `patch` on `release/X.Y.x`).
+4. Click **Run workflow** to start it.
+
+The workflow refuses to run on any other branch, on a commit that is already released, or when the computed tag
+already exists.
+
 Dependabot updates GitHub Actions and Gradle dependencies monthly (minor and patch versions only).
 
 ## Documentation
@@ -77,7 +90,7 @@ Dependabot updates GitHub Actions and Gradle dependencies monthly (minor and pat
 These pages are the `docs/` folder of the repository. On every push to `main` that changes `docs/`, the `wiki.yml`
 workflow publishes them to the GitHub wiki using [`Andrew-Chen-Wang/github-wiki-action`][github-wiki-action]:
 
-- `docs/README.md` becomes the wiki's `Home` page, `docs/_Sidebar.md` its sidebar.
+- `docs/README.md` becomes the wiki's `Home` page, `docs/_Sidebar.md` its sidebar and `docs/_Footer.md` its footer.
 - Links written as `./Page-Name.md` work both in the repository and in the wiki - the action rewrites them to wiki
   links. Link to files outside `docs/` (source code, other READMEs) with absolute URLs to the `main` branch, e.g.
   `https://github.com/damianmalczewski/sample-coupon-service/blob/main/...` - a relative `../` link breaks in the
@@ -89,3 +102,4 @@ workflow publishes them to the GitHub wiki using [`Andrew-Chen-Wang/github-wiki-
 [localhost-setup]: https://github.com/damianmalczewski/sample-coupon-service/tree/main/localhost
 [compose-setup]: https://github.com/damianmalczewski/sample-coupon-service/tree/main/compose
 [github-wiki-action]: https://github.com/Andrew-Chen-Wang/github-wiki-action
+[release-workflow]: https://github.com/damianmalczewski/sample-coupon-service/actions/workflows/release.yml

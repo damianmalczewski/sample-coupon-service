@@ -74,6 +74,8 @@ will wait upon reaching this method until current one concludes.
 - **ip-api.com** - translates client IP to country. Can use WireMock on `localhost`.
 - **Docker** - needed for local services and Testcontainers.
 
+---
+
 - [`localhost/`](localhost) - local development setup. Spins up all dependencies, including a pre-configured WireMock
   stub for the IP geolocation service, plus a Hoppscotch collection with predefined requests.
 - [`compose/`](compose) - standalone demo deployment of the service together with its dependencies.

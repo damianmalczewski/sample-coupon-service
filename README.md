@@ -12,7 +12,8 @@ A throwaway application, used as a sandbox for trying out ideas.
 - Create coupons with country restriction and usage limit.
 - Redeem coupons - enforces country match (resolved from client IP), usage limit, and per-user uniqueness.
 - Resolves race of coupon redemptions.
-- Geolocation responses cached in Redis to cut down external API calls.
+- Geolocation responses cached in Caffeine in front of Redis, with single-flight loads and TTL jitter to avoid
+  thundering herd on the external API.
 - Flyway-managed PostgreSQL schema.
 
 ## Development
@@ -70,6 +71,53 @@ DB uniqueness errors are handled by checking which index triggered the exception
 
 Error responses use [Problem4J](https://problem4j.github.io), an opinionated library that extends Spring Boot's
 exception handling with custom RFC Problem Details implementation.
+
+### Geolocation caching
+
+`@Cacheable(sync = true)` backed by `TwoLevelCache` - in-memory Caffeine (short TTL, per instance) in front of Redis
+(shared). Concurrent misses for same IP within an instance share one in-flight load, so the herd per key is at most one
+external call per instance. Redis TTL gets random jitter, so entries written together (e.g. after cold start) don't
+expire together.
+
+```mermaid
+flowchart TD
+    req["findLocation(ip)"] --> l1{"Caffeine<br/>per instance, TTL 1m"}
+    l1 -- hit --> done(["GeoLocation"])
+    l1 -- miss --> sf{"load for this ip<br/>already in flight?"}
+    sf -- yes --> wait["wait for leader's result"] --> done
+    sf -- "no, become leader" --> l2{"Redis<br/>shared, TTL 8h + jitter"}
+    l2 -- hit --> fill1["copy to Caffeine"] --> done
+    l2 -- miss --> api["ip-api.com"] --> fill2["store in Redis and Caffeine"] --> done
+```
+
+Two concurrent requests for the same IP on one instance - only the leader goes past Caffeine:
+
+```mermaid
+sequenceDiagram
+    participant A as Request A
+    participant B as Request B
+    participant C as TwoLevelCache
+    participant R as Redis
+    participant API as ip-api.com
+    A->>C: findLocation(1.2.3.4)
+    Note over C: Caffeine miss, A becomes leader
+    B->>C: findLocation(1.2.3.4)
+    Note over C: Caffeine miss, load in flight, B waits
+    C->>R: GET
+    R-->>C: miss
+    C->>API: GET /json/1.2.3.4
+    API-->>C: PL
+    C->>R: SET with TTL 8h + jitter
+    Note over C: put into Caffeine with TTL 1m
+    C-->>A: PL
+    C-->>B: PL, no extra call
+```
+
+Local TTL is kept short because local entries are never invalidated across instances - it bounds how long an instance
+may serve value that Redis no longer has.
+
+Plain `sync = true` on `RedisCache` gives no such protection - without locking writer each caller loads, with locking
+writer all misses of all keys queue on a single cache-wide lock.
 
 ### Scalability
 

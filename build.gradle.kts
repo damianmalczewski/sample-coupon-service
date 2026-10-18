@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.problem4j.spring.webmvc)
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
 
+    implementation(libs.caffeine)
     implementation(libs.flyway.database.postgresql)
 
     runtimeOnly(libs.postgresql)

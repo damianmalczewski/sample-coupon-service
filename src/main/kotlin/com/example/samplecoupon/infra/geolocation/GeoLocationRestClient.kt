@@ -15,7 +15,7 @@ class GeoLocationRestClient(
     private val properties: GeoLocationProperties,
 ) : GeoLocationClient {
 
-  @Cacheable("ipAddrGeoLocation", key = "#ipAddr")
+  @Cacheable("ipAddrGeoLocation", key = "#ipAddr", sync = true)
   override fun findLocation(ipAddr: String): GeoLocation {
     val responseBody =
         restClient.get().uri(properties.endpoint, ipAddr).retrieve().body<Map<String, *>>()

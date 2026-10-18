@@ -1,7 +1,9 @@
 package com.example.samplecoupon.infra
 
+import com.example.samplecoupon.infra.cache.JitteredTtl
+import com.example.samplecoupon.infra.cache.TwoLevelCacheManager
+import com.github.benmanes.caffeine.cache.Caffeine
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -17,20 +19,36 @@ import org.springframework.data.redis.serializer.RedisSerializer
 class RedisCacheConfiguration {
 
   @Bean
-  fun cacheManager(
+  fun twoLevelCacheManager(
       connectionFactory: RedisConnectionFactory,
       properties: CachingProperties,
-  ): CacheManager {
+  ): TwoLevelCacheManager {
     val rootConfig =
         RedisCacheSettings.defaultCacheConfig()
             .serializeKeysWith(SerializationPair.fromSerializer(RedisSerializer.string()))
             .serializeValuesWith(SerializationPair.fromSerializer(RedisSerializer.json()))
 
-    return RedisCacheManager.builder(connectionFactory)
-        .cacheDefaults(rootConfig)
-        .withInitialCacheConfigurations(
-            mapOf("ipAddrGeoLocation" to rootConfig.entryTtl(properties.ipAddrGeoLocationTtl)),
-        )
-        .build()
+    val redisCacheManager =
+        RedisCacheManager.builder(connectionFactory)
+            .cacheDefaults(rootConfig)
+            .withInitialCacheConfigurations(
+                mapOf(
+                    "ipAddrGeoLocation" to
+                        rootConfig.entryTtl(
+                            JitteredTtl(
+                                properties.ipAddrGeoLocationTtl,
+                                properties.ipAddrGeoLocationTtlJitter,
+                            ),
+                        ),
+                ),
+            )
+            .build()
+
+    return TwoLevelCacheManager(redisCacheManager) {
+      Caffeine.newBuilder()
+          .expireAfterWrite(properties.localTtl)
+          .maximumSize(properties.localMaxSize)
+          .build()
+    }
   }
 }

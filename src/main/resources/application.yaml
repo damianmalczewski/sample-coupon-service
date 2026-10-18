@@ -73,3 +73,6 @@ sample-coupon-service:
     endpoint: http://localhost:8080/geolocation/{ipAddr}
   caching:
     ip-addr-geo-location-ttl: 8h
+    ip-addr-geo-location-ttl-jitter: 1h
+    local-ttl: 1m
+    local-max-size: 10000

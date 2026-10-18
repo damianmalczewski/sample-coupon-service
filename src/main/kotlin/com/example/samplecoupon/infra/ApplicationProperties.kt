@@ -1,5 +1,6 @@
 package com.example.samplecoupon.infra
 
+import jakarta.validation.constraints.Min
 import java.time.Duration
 import org.hibernate.validator.constraints.time.DurationMin
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -7,7 +8,23 @@ import org.springframework.validation.annotation.Validated
 
 @Validated
 @ConfigurationProperties(prefix = "sample-coupon-service.caching")
-data class CachingProperties(@field:DurationMin(nanos = 0) val ipAddrGeoLocationTtl: Duration)
+data class CachingProperties(
+    @field:DurationMin(nanos = 0) val ipAddrGeoLocationTtl: Duration,
+
+    /**
+     * Upper bound of random extra added to each entry's TTL, so entries written together do not
+     * expire together.
+     */
+    @field:DurationMin(nanos = 0) val ipAddrGeoLocationTtlJitter: Duration,
+
+    /**
+     * TTL of in-memory cache in front of Redis. Not invalidated across instances, so keep it short.
+     */
+    @field:DurationMin(nanos = 1) val localTtl: Duration,
+
+    /** Maximum number of entries per in-memory cache. */
+    @field:Min(1) val localMaxSize: Long,
+)
 
 @ConfigurationProperties(prefix = "sample-coupon-service.clock")
 data class ClockProperties(

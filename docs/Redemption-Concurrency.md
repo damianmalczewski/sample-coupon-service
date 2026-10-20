@@ -8,8 +8,11 @@ count and all succeed, overshooting the limit and losing updates.
 
 `CouponRedeemUseCase` runs in one transaction:
 
-1. **Fetch the coupon by code** - a plain read, used only for the country check.
-2. **Reserve one use with a conditional update** (`CouponRepository.lockRedemption`):
+1. **Fetch the coupon by code** - a plain read, used for the request id and country checks.
+2. **Look up the request id** - a plain read too. If a redemption with the request's `requestId` exists, the request
+   is a retry of a completed one: the use case returns its request id without changing anything (or rejects the
+   request, if the redemption was for another coupon or user).
+3. **Reserve one use with a conditional update** (`CouponRepository.lockRedemption`):
    ```sql
    UPDATE coupons
    SET coupon_usage_count = coupon_usage_count + 1
@@ -20,9 +23,9 @@ count and all succeed, overshooting the limit and losing updates.
    updating the same coupon waits. When the first one commits, PostgreSQL re-evaluates the `WHERE` clause against the
    new row version (`READ COMMITTED` behavior), so the waiting transaction sees the updated count. Zero rows updated
    means the limit is reached - the use case throws `CouponUsageLimitReached`.
-3. **Insert the redemption record.** The unique constraint on `(coupon_id, user_id)` rejects a second redemption by
-   the same user. The exception rolls back the whole transaction, including the increment from step 2, so a rejected
-   duplicate does not use up the coupon.
+4. **Insert the redemption record.** The unique constraints on `(coupon_id, user_id)` and on the request id reject a
+   second redemption by the same user or under the same request id. The exception rolls back the whole transaction,
+   including the increment from step 3, so a rejected duplicate does not use up the coupon.
 
 ```mermaid
 sequenceDiagram
@@ -41,6 +44,18 @@ sequenceDiagram
 ```
 
 If A rolls back instead of committing, B's update proceeds against the original row and succeeds.
+
+### Retries
+
+The request id lookup in step 2 does not wait for requests in progress - it sees only committed redemptions. A retry
+sent while the original request is still running finds nothing and continues like any other request: it waits for
+the original's lock in step 3 and then fails, either on the limit (the original took the last use) or on a unique
+constraint in step 4 (the original redeemed the coupon for the user under the same request id). Both report
+`CouponUsageLimitReached`. Sent again after the original completes, the retry finds its redemption in step 2.
+
+Making an overlapping retry wait for the original instead - by locking the coupon row before step 2 with
+`SELECT ... FOR UPDATE` - would hold the lock for every redemption, while retries usually come after a timeout, when
+the original has long completed. Either way, a retry never redeems the coupon twice.
 
 ## Properties
 
@@ -64,5 +79,8 @@ deterministically, without relying on timing:
 4. The test transaction then commits (competitor must fail with `CouponUsageLimitReached`) or rolls back (competitor
    must succeed).
 
+The same setup covers a retry: the test transaction redeems the last use for a `requestId`, a retry of that request
+blocks and fails after the commit, and a retry sent after the commit must succeed without taking another use.
+
 The spec is deliberately not `@Transactional` - every redemption needs its own committed transaction to contend for
-the row. Duplicate redemptions by the same user are covered by `CouponRedeemUseCaseSpec`.
+the row. Duplicate redemptions by the same user and sequential retries are covered by `CouponRedeemUseCaseSpec`.

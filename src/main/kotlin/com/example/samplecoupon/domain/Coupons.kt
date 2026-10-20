@@ -46,7 +46,8 @@ class Coupon(
     }
   }
 
-  fun redeem(userId: UUID): CouponRedemption = CouponRedemption(coupon = this, userId = userId)
+  fun redeem(userId: UUID, requestId: UUID): CouponRedemption =
+      CouponRedemption(coupon = this, userId = userId, requestId = requestId)
 }
 
 @Entity
@@ -66,7 +67,14 @@ class CouponRedemption(
     @field:Column(name = "user_id", nullable = false) //
     var userId: UUID,
     //
+    @field:Column(name = "coupon_redemption_request_id", nullable = false, unique = true) //
+    var requestId: UUID,
+    //
     @field:CreatedDate
     @field:Column(name = "coupon_redemption_created_at", nullable = false) //
     var createdAt: Instant? = null,
-)
+) {
+  /** Whether this redemption was made for given coupon and user, i.e. it answers same request. */
+  fun isFor(coupon: Coupon, userId: UUID): Boolean =
+      this.coupon.id == coupon.id && this.userId == userId
+}

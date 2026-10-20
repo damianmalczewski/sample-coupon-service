@@ -141,6 +141,7 @@ class ConstraintsGlossarySpec :
           mapOf<String, (String) -> Any>(
                   "@ValidCouponId" to ::CouponIdHolder,
                   "@ValidUserId" to ::UserIdHolder,
+                  "@ValidRedemptionRequestId" to ::RedemptionRequestIdHolder,
               )
               .forEach { (annotation, holder) ->
                 Given(annotation) {
@@ -209,5 +210,7 @@ private data class NullableCouponCodeHolder(@ValidCouponCode val value: String?)
 private data class CouponIdHolder(@ValidCouponId val value: String)
 
 private data class UserIdHolder(@ValidUserId val value: String)
+
+private data class RedemptionRequestIdHolder(@ValidRedemptionRequestId val value: String?)
 
 private data class CouponUsageLimitHolder(@ValidCouponUsageLimit val value: Int)

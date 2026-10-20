@@ -13,6 +13,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathTemplate
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.datatest.withGivens
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import java.util.UUID
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.RestTestClient
@@ -30,6 +32,7 @@ class CouponRedemptionControllerSpec(
     BehaviorSpec(
         {
           val redeemedUserId = UUID.randomUUID()
+          val redeemedRequestId = UUID.randomUUID()
 
           fun stubGeoLocation(ipAddr: String) {
             wireMock.stubFor(
@@ -65,7 +68,11 @@ class CouponRedemptionControllerSpec(
                     Coupon(code = "REDEEMED", usageLimit = 10, countryCode = "PL"),
                 )
             couponRedemptionRepository.save(
-                CouponRedemption(coupon = redeemedCoupon, userId = redeemedUserId),
+                CouponRedemption(
+                    coupon = redeemedCoupon,
+                    userId = redeemedUserId,
+                    requestId = redeemedRequestId,
+                ),
             )
           }
 
@@ -117,6 +124,90 @@ class CouponRedemptionControllerSpec(
             }
           }
 
+          Given("an available coupon and a request id") {
+            val requestId = UUID.randomUUID()
+
+            When("POST redeem coupon with the request id") {
+              val response =
+                  redeemCoupon(
+                      mapOf(
+                          "code" to "WINTER",
+                          "userId" to UUID.randomUUID(),
+                          "requestId" to requestId,
+                      ),
+                  )
+
+              Then("it returns 201 with the request id") {
+                response
+                    .expectStatus()
+                    .isCreated()
+                    .expectBody<Map<String, *>>()
+                    .isEqualTo(mapOf("requestId" to requestId.toString()))
+              }
+            }
+          }
+
+          Given("an available coupon and no request id") {
+            When("POST redeem coupon without the request id") {
+              val response = redeemCoupon(mapOf("code" to "WINTER", "userId" to UUID.randomUUID()))
+
+              Then("it returns 201 with a generated request id") {
+                val body =
+                    response
+                        .expectStatus()
+                        .isCreated()
+                        .expectBody<Map<String, *>>()
+                        .returnResult()
+                        .responseBody!!
+                UUID.fromString(body["requestId"] as String).shouldNotBeNull()
+              }
+            }
+          }
+
+          Given("a coupon already redeemed by the request") {
+            When("POST redeem coupon again with the same request") {
+              val response =
+                  redeemCoupon(
+                      mapOf(
+                          "code" to "REDEEMED",
+                          "userId" to redeemedUserId,
+                          "requestId" to redeemedRequestId,
+                      ),
+                  )
+
+              Then("it returns the same 201 with the request id") {
+                response
+                    .expectStatus()
+                    .isCreated()
+                    .expectBody<Map<String, *>>()
+                    .isEqualTo(mapOf("requestId" to redeemedRequestId.toString()))
+              }
+
+              Then("it does not create a second redemption") {
+                couponRedemptionRepository.count() shouldBe 1
+              }
+            }
+          }
+
+          Given("a request id already used for a different user") {
+            When("POST redeem coupon with the request id") {
+              val response =
+                  redeemCoupon(
+                      mapOf(
+                          "code" to "REDEEMED",
+                          "userId" to UUID.randomUUID(),
+                          "requestId" to redeemedRequestId,
+                      ),
+                  )
+
+              Then("it returns 400") {
+                response.expectBadRequest(
+                    couponProblem(CouponError.COUPON_USAGE_LIMIT_REACHED),
+                )
+              }
+            }
+          }
+
           Given("a non-existent coupon code") {
             When("POST redeem coupon") {
               val response = redeemCoupon(mapOf("code" to "UNKNOWN", "userId" to UUID.randomUUID()))
@@ -160,6 +251,8 @@ class CouponRedemptionControllerSpec(
               Triple("code", " ", "size must be between 1 and 255"),
               Triple("code", "a".repeat(256), "size must be between 1 and 255"),
               Triple("code", "-12", "must be alphanumeric"),
+              Triple("requestId", "", "must be a UUID"),
+              Triple("requestId", "not-a-uuid", "must be a UUID"),
           ) { (field, value, error) ->
             When("POST redeem coupon") {
               val response =

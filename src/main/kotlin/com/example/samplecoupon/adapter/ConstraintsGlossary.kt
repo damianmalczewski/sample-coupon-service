@@ -91,3 +91,13 @@ annotation class ValidUserId(
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = [],
 )
+
+@Pattern(regexp = UUID_REGEXP, message = UUID_MESSAGE)
+@Constraint(validatedBy = [])
+@Target(FIELD, VALUE_PARAMETER, PROPERTY_GETTER, ANNOTATION_CLASS)
+@Retention(RUNTIME)
+annotation class ValidRedemptionRequestId(
+    val message: String = "",
+    val groups: Array<KClass<*>> = [],
+    val payload: Array<KClass<out Payload>> = [],
+)

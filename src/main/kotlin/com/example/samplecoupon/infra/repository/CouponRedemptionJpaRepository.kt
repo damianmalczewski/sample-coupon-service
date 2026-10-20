@@ -7,9 +7,13 @@ import java.util.UUID
 import org.hibernate.exception.ConstraintViolationException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 
 interface CouponRedemptionJpaRepository :
     CouponRedemptionRepository, JpaRepository<CouponRedemption, UUID> {
+
+  @Query("SELECT r FROM CouponRedemption r WHERE r.requestId = :requestId")
+  override fun findByRequestId(requestId: UUID): CouponRedemption?
 
   override fun insert(couponRedemption: CouponRedemption): CouponRedemption {
     try {
@@ -17,7 +21,7 @@ interface CouponRedemptionJpaRepository :
     } catch (e: DataIntegrityViolationException) {
       if (e.cause is ConstraintViolationException) {
         val cause = e.cause as ConstraintViolationException
-        if (cause.constraintName == UK_COUPON_REDEMPTIONS_UNIQUE) {
+        if (cause.constraintName in UK_COUPON_REDEMPTIONS) {
           throw CouponException.CouponUsageLimitReached()
         }
       }
@@ -26,6 +30,7 @@ interface CouponRedemptionJpaRepository :
   }
 
   private companion object {
-    private const val UK_COUPON_REDEMPTIONS_UNIQUE = "uk_coupon_redemptions_coupon_user"
+    private val UK_COUPON_REDEMPTIONS =
+        setOf("uk_coupon_redemptions_coupon_user", "uk_coupon_redemptions_request_id")
   }
 }

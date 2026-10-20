@@ -50,11 +50,15 @@ interface CouponRepository {
 
 interface CouponRedemptionRepository {
 
+  /** Finds redemption made by request with given id. */
+  fun findByRequestId(requestId: UUID): CouponRedemption?
+
   /**
-   * Persists coupon redemption record. Enforces one redemption per user per coupon via unique
-   * constraint.
+   * Persists coupon redemption record. Enforces one redemption per user per coupon and one
+   * redemption per request id via unique constraints.
    *
-   * @throws CouponException.CouponUsageLimitReached if user already redeemed this coupon
+   * @throws CouponException.CouponUsageLimitReached if user already redeemed this coupon or
+   *   redemption with same request id already exists
    */
   fun insert(couponRedemption: CouponRedemption): CouponRedemption
 }

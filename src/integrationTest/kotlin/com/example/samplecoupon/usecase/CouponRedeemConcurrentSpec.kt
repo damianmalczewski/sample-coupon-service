@@ -43,9 +43,18 @@ class CouponRedeemConcurrentSpec(
           val executor = Executors.newCachedThreadPool()
           afterSpec { executor.shutdownNow() }
 
-          fun redeem(code: String, userId: UUID = UUID.randomUUID()) =
+          fun redeem(
+              code: String,
+              userId: UUID = UUID.randomUUID(),
+              requestId: UUID? = null,
+          ) =
               useCase.redeemCoupon(
-                  RedeemCouponCommand(code = code, userId = userId, geoLocation = plGeoLocation),
+                  RedeemCouponCommand(
+                      code = code,
+                      userId = userId,
+                      geoLocation = plGeoLocation,
+                      requestId = requestId,
+                  ),
               )
 
           fun usageCountOf(code: String) = couponRepository.fetchByCode(code).usageCount
@@ -60,15 +69,19 @@ class CouponRedeemConcurrentSpec(
               )!!
 
           /**
-           * Opens transaction that reserves single redemption of [code] and holds row lock until
-           * returned [CompletableFuture] is completed with `true` (commit) or `false` (rollback).
+           * Opens transaction that reserves single redemption of [code] (running [reserve]) and
+           * holds row lock until returned [CompletableFuture] is completed with `true` (commit) or
+           * `false` (rollback).
            */
-          fun holdRedemptionLock(code: String): Pair<CompletableFuture<Boolean>, Future<*>> {
+          fun holdRedemptionLock(
+              code: String,
+              reserve: () -> Unit = { couponRepository.lockRedemption(code) },
+          ): Pair<CompletableFuture<Boolean>, Future<*>> {
             val decision = CompletableFuture<Boolean>()
             val lockAcquired = CountDownLatch(1)
             val holder = executor.submit {
               transactionTemplate.executeWithoutResult { status ->
-                couponRepository.lockRedemption(code)
+                reserve()
                 lockAcquired.countDown()
                 if (!decision.get(30, TimeUnit.SECONDS)) {
                   status.setRollbackOnly()
@@ -120,6 +133,40 @@ class CouponRedeemConcurrentSpec(
                 decision.complete(false)
                 holder.get(10, TimeUnit.SECONDS)
                 contender.get(10, TimeUnit.SECONDS).isSuccess shouldBe true
+                usageCountOf("LAST") shouldBe 1
+                couponRedemptionRepository.count() shouldBe 1
+              }
+            }
+          }
+
+          Given("a coupon with single usage left, redeemed by an open transaction of a request") {
+            When("the same request is retried before the original transaction commits") {
+              val userId = UUID.randomUUID()
+              val requestId = UUID.randomUUID()
+              val (decision, holder) =
+                  holdRedemptionLock("LAST") {
+                    val coupon = couponRepository.fetchByCode("LAST")
+                    couponRepository.lockRedemption("LAST")
+                    couponRedemptionRepository.insert(coupon.redeem(userId, requestId))
+                  }
+              val retry =
+                  CompletableFuture.supplyAsync(
+                      { runCatching { redeem("LAST", userId, requestId) } },
+                      executor,
+                  )
+
+              Then("overlapping retry is rejected as the original has not committed yet") {
+                eventually(5.seconds) { lockWaitersCount() shouldBe 1 }
+                decision.complete(true)
+                holder.get(10, TimeUnit.SECONDS)
+                retry
+                    .get(10, TimeUnit.SECONDS)
+                    .exceptionOrNull()
+                    .shouldBeInstanceOf<CouponException.CouponUsageLimitReached>()
+              }
+
+              Then("retry sent after the commit returns the original redemption") {
+                redeem("LAST", userId, requestId).id shouldBe requestId.toString()
                 usageCountOf("LAST") shouldBe 1
                 couponRedemptionRepository.count() shouldBe 1
               }

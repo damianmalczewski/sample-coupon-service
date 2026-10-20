@@ -111,8 +111,8 @@ Responses:
   }
   ```
 - `400 Bad Request` - validation failed, or one of `COUPON_BY_CODE_NOT_EXISTS`, `COUPON_UNAVAILABLE_IN_COUNTRY`,
-  `COUPON_USAGE_LIMIT_REACHED` (also when the `requestId` was already used to redeem a different coupon or by a
-  different user)
+  `COUPON_USAGE_LIMIT_REACHED` (also when the user already used the `requestId` to redeem a different coupon)
+- `409 Conflict` - `IDEMPOTENCY_FAILED`, the `requestId` was already used by a different user
 - `500 Internal Server Error` - `FAILED_TO_LOCALIZE_CLIENT`, the geolocation service failed
 
 ## Errors
@@ -156,4 +156,5 @@ reporting a problem.
 | `COUPON_BY_CODE_NOT_EXISTS`     | 400    | no coupon with the given code                                     |
 | `COUPON_UNAVAILABLE_IN_COUNTRY` | 400    | client's country differs from coupon's country                    |
 | `COUPON_USAGE_LIMIT_REACHED`    | 400    | coupon exhausted, or already redeemed by user or under request id |
+| `IDEMPOTENCY_FAILED`            | 409    | request id already used by a different user                       |
 | `FAILED_TO_LOCALIZE_CLIENT`     | 500    | client's country could not be resolved                            |

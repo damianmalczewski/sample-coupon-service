@@ -200,10 +200,19 @@ class CouponRedemptionControllerSpec(
                       ),
                   )
 
-              Then("it returns 400") {
-                response.expectBadRequest(
-                    couponProblem(CouponError.COUPON_USAGE_LIMIT_REACHED),
-                )
+              Then("it returns 409") {
+                response
+                    .expectStatus()
+                    .isEqualTo(409)
+                    .expectBody<Map<String, *>>()
+                    .isEqualTo(
+                        mapOf(
+                            "title" to "Conflict",
+                            "status" to 409,
+                            "detail" to CouponError.IDEMPOTENCY_FAILED.detail,
+                            "code" to CouponError.IDEMPOTENCY_FAILED.name,
+                        ),
+                    )
               }
             }
           }

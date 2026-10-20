@@ -142,10 +142,19 @@ class CouponRedeemUseCaseSpec(
 
           Given("a request id already used for a different user") {
             When("redeeming the same coupon with it") {
-              Then("it throws CouponUsageLimitReached") {
-                shouldThrow<CouponException.CouponUsageLimitReached> {
+              Then("it throws IdempotencyFailed") {
+                shouldThrow<CouponException.IdempotencyFailed> {
                   redeem("REDEEMED", UUID.randomUUID(), redeemedRequestId)
                 }
+              }
+            }
+
+            When("redeeming another coupon with it") {
+              Then("it throws IdempotencyFailed") {
+                shouldThrow<CouponException.IdempotencyFailed> {
+                  redeem("WINTER", UUID.randomUUID(), redeemedRequestId)
+                }
+                usageCountOf("WINTER") shouldBe 0
               }
             }
           }

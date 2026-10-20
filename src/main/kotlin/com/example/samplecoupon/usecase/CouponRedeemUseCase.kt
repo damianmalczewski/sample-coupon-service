@@ -23,8 +23,9 @@ class CouponRedeemUseCase(
    * like a second redemption, and succeeds when sent again after the original ends.
    *
    * @return identity holding the request id of the redemption, generated if not given
-   * @throws CouponException.CouponUsageLimitReached if request id was already used for a different
-   *   coupon or user, as for any other repeated redemption
+   * @throws CouponException.IdempotencyFailed if request id was already used by a different user
+   * @throws CouponException.CouponUsageLimitReached if request id was already used by the same user
+   *   for a different coupon, as for any other repeated redemption
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   fun redeemCoupon(request: RedeemCouponCommand): Identity {
@@ -32,7 +33,10 @@ class CouponRedeemUseCase(
 
     val existing = request.requestId?.let { couponRedemptionRepository.findByRequestId(it) }
     if (existing != null) {
-      if (!existing.isFor(coupon, request.userId)) {
+      if (!existing.isBy(request.userId)) {
+        throw CouponException.IdempotencyFailed()
+      }
+      if (!existing.isOf(coupon)) {
         throw CouponException.CouponUsageLimitReached()
       }
       return Identity(existing.requestId.toString())

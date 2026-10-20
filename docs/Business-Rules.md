@@ -39,7 +39,8 @@ flowchart TD
     exists -- no --> e1["400 COUPON_BY_CODE_NOT_EXISTS"]
     exists -- yes --> request{"redemption with<br/>this requestId exists?"}
     request -- "yes, same coupon and user" --> replay(["201 Created<br/>nothing changes"])
-    request -- "yes, other coupon or user" --> e5["400 COUPON_USAGE_LIMIT_REACHED"]
+    request -- "yes, other user" --> e6["409 IDEMPOTENCY_FAILED"]
+    request -- "yes, same user, other coupon" --> e5["400 COUPON_USAGE_LIMIT_REACHED"]
     request -- no --> country{"client country =<br/>coupon country?"}
     country -- no --> e2["400 COUPON_UNAVAILABLE_IN_COUNTRY"]
     country -- yes --> limit{"usageCount <<br/>usageLimit?"}
@@ -60,9 +61,10 @@ redemption that fails a later check does not use up the coupon.
   See [Redemption Concurrency](./Redemption-Concurrency.md).
 - **A user redeems a coupon at most once**, also under concurrent requests - enforced by a database constraint.
 - **A request is processed at most once.** Retrying a request with the same `requestId` after it completed returns
-  the original's `201 Created` and changes nothing. A `requestId` belongs to one redemption;
-  reusing it for another coupon or user fails with `400 COUPON_USAGE_LIMIT_REACHED`. Only successful redemptions are
-  stored, so a retry of a rejected request is evaluated again.
+  the original's `201 Created` and changes nothing. A `requestId` belongs to one redemption; reusing it by another
+  user fails with `409 IDEMPOTENCY_FAILED`, by the same user for another coupon with
+  `400 COUPON_USAGE_LIMIT_REACHED`. Only successful redemptions are stored, so a retry of a rejected request is
+  evaluated again.
 - **Codes are unique** - creating a coupon with an existing code (in any letter case) fails with
   `409 COUPON_ALREADY_EXISTS`.
 
@@ -80,7 +82,8 @@ These follow from the current design and are worth knowing before relying on the
 - **A retry overlapping the original request is rejected.** The service looks the `requestId` up without waiting
   for requests in progress, so a retry sent while the original is still running fails with
   `400 COUPON_USAGE_LIMIT_REACHED` - the original has taken the use, or the user's one redemption. Sent again after
-  the original completes, the retry gets the original's `201 Created`.
+  the original completes, the retry gets the original's `201 Created`. Likewise, another user reusing the
+  `requestId` of a running request gets `400 COUPON_USAGE_LIMIT_REACHED`, not `409 IDEMPOTENCY_FAILED`.
 - **A replayed request is not checked again.** A retry with a known `requestId` returns `201 Created` without
   comparing the client's country, so it succeeds even from another country. The country is still resolved first, so
   a geolocation outage fails retries too.

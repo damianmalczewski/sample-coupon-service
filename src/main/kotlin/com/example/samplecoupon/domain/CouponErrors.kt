@@ -17,6 +17,7 @@ enum class CouponError(override val category: ErrorCategory, override val detail
       "coupon unavailable in the country of the user",
   ),
   COUPON_USAGE_LIMIT_REACHED(ErrorCategory.BAD_REQUEST, "coupon usage limit has been reached"),
+  IDEMPOTENCY_FAILED(ErrorCategory.CONFLICT, "idempotency failed"),
 }
 
 sealed class CouponException(error: CouponError) : DomainException(error) {
@@ -30,4 +31,6 @@ sealed class CouponException(error: CouponError) : DomainException(error) {
   class CouponUnavailableInCountry : CouponException(CouponError.COUPON_UNAVAILABLE_IN_COUNTRY)
 
   class CouponUsageLimitReached : CouponException(CouponError.COUPON_USAGE_LIMIT_REACHED)
+
+  class IdempotencyFailed : CouponException(CouponError.IDEMPOTENCY_FAILED)
 }

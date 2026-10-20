@@ -74,7 +74,9 @@ class CouponRedemption(
     @field:Column(name = "coupon_redemption_created_at", nullable = false) //
     var createdAt: Instant? = null,
 ) {
-  /** Whether this redemption was made for given coupon and user, i.e. it answers same request. */
-  fun isFor(coupon: Coupon, userId: UUID): Boolean =
-      this.coupon.id == coupon.id && this.userId == userId
+  /** Whether this redemption was made by given user. */
+  fun isBy(userId: UUID): Boolean = this.userId == userId
+
+  /** Whether this redemption was made of given coupon. */
+  fun isOf(coupon: Coupon): Boolean = this.coupon.id == coupon.id
 }

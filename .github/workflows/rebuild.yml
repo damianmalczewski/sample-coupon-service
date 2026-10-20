@@ -1,10 +1,10 @@
 # Weekly rebuild of released Docker images, so they pick up updates of the base image (OS packages, JDK patches). The
 # application itself does not change - the jar is taken from the released image, only the surrounding layers are rebuilt.
 #
-# 1. Plan - picks the versions to rebuild from the vX.Y.Z git tags:
-#    - with .github/utils/supported_versions (one X.Y version line per line, # starts a comment) - the highest patch of
-#      every listed line; a listed line without any release is skipped with a warning,
-#    - without it - only the highest release.
+# 1. Plan - picks the versions to rebuild from the vX.Y.Z git tags: the highest patch of every version line listed in
+#    .github/utils/supported_versions and .github/utils/legacy_versions (one X.Y per line, # starts a comment). Either
+#    file is optional; without supported_versions the newest version line is taken in its place. Lines listed twice are
+#    rebuilt once, a listed line without any release is skipped with a warning.
 # 2. Rebuild - one job per picked version. Checks out its vX.Y.Z tag, extracts the jar from the X.Y.Z image, builds the
 #    image from the tag's Dockerfile on a freshly pulled base image and pushes it as X.Y.Z and X.Y, as X only when it is
 #    the highest release of that major, and as latest only when it is the highest release overall - the same tags the
@@ -45,6 +45,7 @@ jobs:
           set -euo pipefail
           release_tag='^v[0-9]+\.[0-9]+\.[0-9]+$'
           supported_file=.github/utils/supported_versions
+          legacy_file=.github/utils/legacy_versions
 
           versions=$(git tag -l | grep -E "$release_tag" | sed 's/^v//' | sort -V || true)
           echo "::group::Releases ($(echo "$versions" | grep -c . || true))"
@@ -58,28 +59,38 @@ jobs:
           latest=$(echo "$versions" | tail -n 1)
           echo "Highest release: $latest"
 
-          rebuild=()
-          if [ -f "$supported_file" ]; then
-            lines=$(sed -e 's/#.*//' -e 's/[[:space:]]//g' "$supported_file" | grep . | sort -uV || true)
-            echo "Supported version lines: $(echo $lines)"
-            for line in $lines; do
+          lines=()
+          for file in "$supported_file" "$legacy_file"; do
+            if [ ! -f "$file" ]; then
+              echo "No $file"
+              continue
+            fi
+            mapfile -t file_lines < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' "$file" | grep . || true)
+            echo "Version lines in $file: ${file_lines[*]:-none}"
+            for line in "${file_lines[@]}"; do
               if [[ ! "$line" =~ ^[0-9]+\.[0-9]+$ ]]; then
-                echo "::error::Invalid version line '$line' in $supported_file, expected X.Y"
+                echo "::error::Invalid version line '$line' in $file, expected X.Y"
                 exit 1
               fi
-              line_highest=$(echo "$versions" | grep -E "^${line//./\\.}\." | tail -n 1 || true)
-              if [ -z "$line_highest" ]; then
-                echo "::warning::Version line $line has never been released, skipping it"
-                continue
-              fi
-              rebuild+=("$line_highest")
+              lines+=("$line")
             done
-            if [[ ! " ${rebuild[*]} " =~ " $latest " ]]; then
-              echo "::warning::Newest version line ${latest%.*} is not in $supported_file, latest is not rebuilt"
+          done
+          if [ ! -f "$supported_file" ]; then
+            echo "Taking the newest version line ${latest%.*} in place of $supported_file"
+            lines+=("${latest%.*}")
+          fi
+
+          rebuild=()
+          for line in $(printf '%s\n' "${lines[@]}" | sort -uV); do
+            line_highest=$(echo "$versions" | grep -E "^${line//./\\.}\." | tail -n 1 || true)
+            if [ -z "$line_highest" ]; then
+              echo "::warning::Version line $line has never been released, skipping it"
+              continue
             fi
-          else
-            echo "No $supported_file, rebuilding the highest release only"
-            rebuild=("$latest")
+            rebuild+=("$line_highest")
+          done
+          if [[ ! " ${rebuild[*]} " =~ " $latest " ]]; then
+            echo "::warning::Newest version line ${latest%.*} is not in $supported_file, latest is not rebuilt"
           fi
 
           # The X image tag belongs to the highest release of its major version, latest to the highest one overall.

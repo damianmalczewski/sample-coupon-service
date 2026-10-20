@@ -1,0 +1,171 @@
+# Weekly rebuild of released Docker images, so they pick up updates of the base image (OS packages, JDK patches). The
+# application itself does not change - the jar is taken from the released image, only the surrounding layers are rebuilt.
+#
+# 1. Plan - picks the versions to rebuild from the vX.Y.Z git tags:
+#    - with .github/utils/supported_versions (one X.Y version line per line, # starts a comment) - the highest patch of
+#      every listed line; a listed line without any release is skipped with a warning,
+#    - without it - only the highest release.
+# 2. Rebuild - one job per picked version. Checks out its vX.Y.Z tag, extracts the jar from the X.Y.Z image, builds the
+#    image from the tag's Dockerfile on a freshly pulled base image and pushes it as X.Y.Z and X.Y, as X only when it is
+#    the highest release of that major, and as latest only when it is the highest release overall - the same tags the
+#    Release workflow gave it.
+#
+# Shares the concurrency group with release.yml, so a rebuild planned before a new release cannot move latest back.
+
+name: Rebuild Images
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * 6"
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Pick Versions
+        id: plan
+        run: |
+          set -euo pipefail
+          release_tag='^v[0-9]+\.[0-9]+\.[0-9]+$'
+          supported_file=.github/utils/supported_versions
+
+          versions=$(git tag -l | grep -E "$release_tag" | sed 's/^v//' | sort -V || true)
+          echo "::group::Releases ($(echo "$versions" | grep -c . || true))"
+          echo "${versions:-none}"
+          echo "::endgroup::"
+          if [ -z "$versions" ]; then
+            echo "::notice::No releases, nothing to rebuild"
+            echo "matrix=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          latest=$(echo "$versions" | tail -n 1)
+          echo "Highest release: $latest"
+
+          rebuild=()
+          if [ -f "$supported_file" ]; then
+            lines=$(sed -e 's/#.*//' -e 's/[[:space:]]//g' "$supported_file" | grep . | sort -uV || true)
+            echo "Supported version lines: $(echo $lines)"
+            for line in $lines; do
+              if [[ ! "$line" =~ ^[0-9]+\.[0-9]+$ ]]; then
+                echo "::error::Invalid version line '$line' in $supported_file, expected X.Y"
+                exit 1
+              fi
+              line_highest=$(echo "$versions" | grep -E "^${line//./\\.}\." | tail -n 1 || true)
+              if [ -z "$line_highest" ]; then
+                echo "::warning::Version line $line has never been released, skipping it"
+                continue
+              fi
+              rebuild+=("$line_highest")
+            done
+            if [[ ! " ${rebuild[*]} " =~ " $latest " ]]; then
+              echo "::warning::Newest version line ${latest%.*} is not in $supported_file, latest is not rebuilt"
+            fi
+          else
+            echo "No $supported_file, rebuilding the highest release only"
+            rebuild=("$latest")
+          fi
+
+          # The X image tag belongs to the highest release of its major version, latest to the highest one overall.
+          matrix=$(
+            for version in "${rebuild[@]}"; do
+              major_highest=$(echo "$versions" | grep -E "^${version%%.*}\." | tail -n 1)
+              jq -nc \
+                --arg version "$version" \
+                --arg is_latest "$([ "$version" = "$latest" ] && echo true || echo false)" \
+                --arg is_major_latest "$([ "$version" = "$major_highest" ] && echo true || echo false)" \
+                '{version: $version, "is-latest": $is_latest, "is-major-latest": $is_major_latest}'
+            done | jq -sc .
+          )
+          echo "::notice::Rebuilding ${rebuild[*]:-nothing}"
+          echo "Matrix: $matrix"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  rebuild:
+    name: Rebuild ${{ matrix.version }}
+    needs: plan
+    if: needs.plan.outputs.matrix != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      VERSION: ${{ matrix.version }}
+      IS_LATEST: ${{ matrix.is-latest }}
+      IS_MAJOR_LATEST: ${{ matrix.is-major-latest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/v${{ matrix.version }}
+
+      - name: Rebuild and Push Image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          refs=("$image:$VERSION" "$image:${VERSION%.*}")
+          if [ "$IS_MAJOR_LATEST" = "true" ]; then refs+=("$image:${VERSION%%.*}"); fi
+          if [ "$IS_LATEST" = "true" ]; then refs+=("$image:latest"); fi
+          tags=()
+          for ref in "${refs[@]}"; do tags+=(--tag "$ref"); done
+          revision=$(git rev-parse HEAD)
+          jar="build/libs/sample-coupon-service-$VERSION-exec.jar"
+
+          echo "Image $image, version $VERSION, commit $revision"
+          echo "Tags: ${refs[*]#"$image:"}"
+
+          echo "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+
+          echo "::group::Extract jar from $image:$VERSION"
+          docker pull "$image:$VERSION"
+          container=$(docker create "$image:$VERSION")
+          mkdir -p build/libs
+          docker cp "$container:/app/sample-coupon-service.jar" "$jar"
+          docker rm "$container"
+          ls -l build/libs
+          echo "::endgroup::"
+
+          echo "::group::Build image"
+          docker build \
+            --pull \
+            --no-cache \
+            --progress plain \
+            --build-arg "VERSION=$VERSION" \
+            --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.description=A throwaway application, used as a sandbox for trying out ideas." \
+            --label "org.opencontainers.image.version=$VERSION" \
+            --label "org.opencontainers.image.revision=$revision" \
+            "${tags[@]}" \
+            .
+          echo "::endgroup::"
+          docker image inspect "${refs[0]}" \
+            --format 'Built image {{.Id}}, size {{.Size}} bytes, labels {{json .Config.Labels}}'
+
+          for ref in "${refs[@]}"; do
+            echo "::group::Push $ref"
+            docker push "$ref"
+            echo "::endgroup::"
+          done
+          docker rmi "${refs[@]}"

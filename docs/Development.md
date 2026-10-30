@@ -14,7 +14,7 @@ Two setups are provided in the repository:
   predefined requests.
   ```bash
   docker compose -f localhost/docker-compose.yaml up -d
-  ./gradlew bootRun --args='--spring.profiles.active=wiremock'
+  ./gradlew bootRun
   ```
 - [`compose/`][compose-setup] - standalone demo, the application runs from its Docker image too.
   ```bash

@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: sample-coupon-service
+  profiles:
+    default: local
   main:
     banner-mode: off
     keep-alive: true
@@ -30,6 +32,8 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     out-of-order: true
+    # local profile adds repeatable seed migrations; keep DB usable without that profile
+    ignore-migration-patterns: "*:future,repeatable:missing"
   data:
     redis:
       host: localhost
@@ -69,7 +73,7 @@ sample-coupon-service:
     connect-timeout: 300ms
     read-timeout: 1500ms
   geolocation:
-    # default value of endpoint binds to a local WireMock instance, prod should use ipapi profile or manual override
+    # default value of endpoint binds to a local WireMock instance, prod should use prod profile or manual override
     endpoint: http://localhost:8080/geolocation/{ipAddr}
   caching:
     ip-addr-geo-location-ttl: 8h

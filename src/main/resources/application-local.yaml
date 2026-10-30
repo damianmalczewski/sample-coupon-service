@@ -1,3 +1,7 @@
+spring:
+  flyway:
+    locations: classpath:db/migration,filesystem:localhost/db/seed
+
 sample-coupon-service:
   geolocation:
     endpoint: http://localhost:1080/geolocation/{ipAddr}

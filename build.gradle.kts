@@ -179,14 +179,14 @@ idea {
                     mainClass = "com.example.samplecoupon.ApplicationKt"
                     moduleName = "sample-coupon-service.main"
                     workingDirectory = rootProject.rootDir.absolutePath
-                    jvmArgs = "-Dspring.profiles.active=ipapi -Dlogging.level.com.example.samplecoupon=debug"
+                    jvmArgs = "-Dspring.profiles.active=prod -Dlogging.level.com.example.samplecoupon=debug"
                     programParameters = ""
                 }
                 create<Application>("Run [sample-coupon-service|localhost]") {
                     mainClass = "com.example.samplecoupon.ApplicationKt"
                     moduleName = "sample-coupon-service.main"
                     workingDirectory = rootProject.rootDir.absolutePath
-                    jvmArgs = "-Dspring.profiles.active=wiremock -Dlogging.level.com.example.samplecoupon=debug"
+                    jvmArgs = "-Dlogging.level.com.example.samplecoupon=debug"
                     programParameters = ""
                 }
                 create<Gradle>("Format Code [sample-coupon-service]") {

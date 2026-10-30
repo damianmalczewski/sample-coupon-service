@@ -46,8 +46,10 @@ Caching settings are explained in [Geolocation Caching](./Geolocation-Caching.md
 
 ## Profiles
 
-- **`ipapi`** - geolocation endpoint set to `http://ip-api.com/json/{ipAddr}`. Use in production.
-- **`wiremock`** - geolocation endpoint set to the WireMock stub at `http://localhost:1080`, for local development.
+- **`prod`** - geolocation endpoint set to `http://ip-api.com/json/{ipAddr}`. Use in production.
+- **`local`** - local development against [`localhost/`](../localhost) dependencies: geolocation endpoint set to
+  the WireMock stub at `http://localhost:1080`, sample data seeded from `localhost/db/seed`. Default profile, active
+  when no other profile is set.
 - **`integrationTest`** - test-only. Disables caching and points geolocation at the test WireMock.
 
 ## Docker image
@@ -58,6 +60,6 @@ The image (`ghcr.io/damianmalczewski/sample-coupon-service`) accepts:
   empty for plain text.
 - **`JAVA_OPTS_EXTRA`** - extra JVM options, appended to the defaults (container-aware heap at 75% of RAM, exit and
   heap dump on out-of-memory).
-- **`APP_ARGS`** - application arguments, for example `--spring.profiles.active=ipapi`.
+- **`APP_ARGS`** - application arguments, for example `--spring.profiles.active=prod`.
 
 Plus any property override as an environment variable, as above.

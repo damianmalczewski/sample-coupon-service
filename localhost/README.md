@@ -24,13 +24,23 @@ WireMock serves stubs from [`wiremock/mappings`](wiremock/mappings). The bundled
 
 ## Running the application
 
-Run with the `wiremock` profile, which points the geolocation client at the local WireMock stub:
+Run with the `local` profile (default when no profile is set), which points the geolocation client at the local
+WireMock stub and seeds sample data:
 
 ```bash
-./gradlew bootRun --args='--spring.profiles.active=wiremock'
+./gradlew bootRun
 ```
 
 The application listens on `http://localhost:8080`.
+
+## Seed data
+
+The `local` profile loads sample coupons from [`db/seed`](db/seed) on startup. Seed scripts are Flyway repeatable
+migrations (`R__*.sql`), resolved from the filesystem, so they never end up in the application jar. They run after all
+versioned migrations, in name order, and again whenever their content changes. Prefix each with a four-digit sequence
+number (`R__0001_seed_coupons.sql`, `R__0002_...`) to keep that order explicit. Keep them idempotent
+(`ON CONFLICT DO NOTHING`) - rows already in the database are not updated. To start over, drop the volume with
+`docker compose -f localhost/docker-compose.yaml down -v`.
 
 ## Hoppscotch collection
 

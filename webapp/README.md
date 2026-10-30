@@ -35,5 +35,5 @@ It lands in [`src/main/resources/static`](../src/main/resources/static) (git-ign
 built afterwards, serves the UI on `/`. Paths matching no endpoint nor file (client-side routes like `/redeem`) resolve
 to `index.html`. Without a build, `/` redirects to Swagger UI.
 
-Release builds (CI called by the Release workflow) run `npm ci` and `npm run build` before Gradle, so released jars and
-Docker images always carry a fresh UI. Other CI builds leave it out.
+CI runs `npm ci` and `npm run build` before Gradle on every build, so CI jars, released ones and Docker images always
+carry a fresh UI.

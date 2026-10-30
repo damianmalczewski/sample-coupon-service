@@ -38,7 +38,7 @@ npm run build   # builds into src/main/resources/static (git-ignored), served by
 ```
 
 The Gradle build packages whatever is in `src/main/resources/static` at the time - nothing on a fresh checkout, so `/`
-redirects to Swagger UI. Release builds in CI build the UI fresh before Gradle, so released jars and images include it.
+redirects to Swagger UI. CI builds the UI fresh before Gradle on every build, so its jars and released images include it.
 
 ## Build and tests
 

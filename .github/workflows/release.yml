@@ -6,8 +6,8 @@
 #    - on release/X.Y.x, of the highest vX.Y.* tag; only "patch" is allowed, the line must already be released and must
 #      not be the newest one (which belongs to main).
 #    Refuses to run on other branches, on an already released commit, or when the tag already exists.
-# 2. Build - runs the regular CI build (ci.yml) with the computed version, so the released jar is the tested one. With a
-#    version set, CI also builds the web UI fresh from webapp/ first, so the jar serves it.
+# 2. Build - runs the regular CI build (ci.yml) with the computed version, so the released jar is the tested one. CI builds
+#    the web UI fresh from webapp/ first, so the jar serves it.
 # 3. Publish - builds the Docker image from that jar and pushes it to ghcr.io as X.Y.Z and X.Y, as X only when it is
 #    the highest release of that major, and as latest only from main. Then creates the annotated vX.Y.Z git tag
 #    ("Release X.Y.Z") and GitHub release (marked as latest only from main) with notes listing the commits since the

@@ -1,7 +1,7 @@
 # REST API
 
 Base URL in local setups: `http://localhost:8080`. The interactive OpenAPI documentation is served by Swagger UI at
-`/swagger-ui/index.html` - the root path `/` redirects there.
+`/swagger-ui/index.html` - the root path `/` redirects there unless the [web UI](../webapp) is built.
 
 All endpoints consume and produce `application/json`. Errors are returned as Problem Details, see
 [Errors](#errors).

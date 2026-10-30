@@ -64,6 +64,23 @@ jobs:
           restore-keys: |
             ci-${{ runner.os }}-java-25-
 
+      # Release builds only - the released jar serves the web UI, built fresh from webapp/ into src/main/resources/static
+      # (git-ignored), so the Gradle build packages it. Regular builds leave it out.
+      - name: Set up Node.js
+        if: inputs.version != ''
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: "webapp/package-lock.json"
+
+      - name: Build Web UI
+        if: inputs.version != ''
+        working-directory: webapp
+        run: |
+          npm ci
+          npm run build
+
       - name: Gradle Build
         env:
           GRADLE_OPTS: >-
@@ -82,6 +99,10 @@ jobs:
           files: ./build/reports/kover/report.xml
           disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Verify Web UI in Exec Jar
+        if: inputs.version != ''
+        run: unzip -l build/libs/*-exec.jar | grep -F 'BOOT-INF/classes/static/index.html'
 
       - name: Upload Exec Jar
         if: inputs.version != ''

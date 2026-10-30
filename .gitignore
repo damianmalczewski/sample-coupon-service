@@ -39,3 +39,6 @@ out/
 
 ### Claude ###
 .claude/settings.local.json
+
+### Web UI, built from webapp/ ###
+src/main/resources/static/

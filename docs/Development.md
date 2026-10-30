@@ -3,6 +3,7 @@
 ## Prerequisites
 
 - JDK 25 (Gradle toolchains can provision it)
+- Node.js 24 - only for the web UI, the Gradle build does not need it
 - Docker - for local dependencies and for Testcontainers in integration tests
 
 ## Running locally
@@ -22,7 +23,22 @@ Two setups are provided in the repository:
   ```
 
 Both bundle a WireMock stub that resolves every IP address to `PL`, so coupons created with `countryCode: PL` can be
-redeemed. The application listens on `http://localhost:8080`; `/` redirects to Swagger UI.
+redeemed. The application listens on `http://localhost:8080`; `/` serves the [web UI][webapp] when built, otherwise
+redirects to Swagger UI.
+
+## Web UI
+
+The [web UI][webapp] is built manually, outside of Gradle:
+
+```bash
+cd webapp
+npm ci
+npm run dev     # dev server on http://localhost:5173, proxies /api to :8080
+npm run build   # builds into src/main/resources/static (git-ignored), served by the application
+```
+
+The Gradle build packages whatever is in `src/main/resources/static` at the time - nothing on a fresh checkout, so `/`
+redirects to Swagger UI. Release builds in CI build the UI fresh before Gradle, so released jars and images include it.
 
 ## Build and tests
 
@@ -105,5 +121,6 @@ workflow publishes them to the GitHub wiki using [`Andrew-Chen-Wang/github-wiki-
 
 [localhost-setup]: https://github.com/damianmalczewski/sample-coupon-service/tree/main/localhost
 [compose-setup]: https://github.com/damianmalczewski/sample-coupon-service/tree/main/compose
+[webapp]: https://github.com/damianmalczewski/sample-coupon-service/tree/main/webapp
 [github-wiki-action]: https://github.com/Andrew-Chen-Wang/github-wiki-action
 [release-workflow]: https://github.com/damianmalczewski/sample-coupon-service/actions/workflows/release.yml

@@ -34,6 +34,16 @@ Useful Gradle commands:
 ./gradlew integrationTest
 ```
 
+For local development, build the [web UI](webapp) once by hand (needs Node.js). Its output in
+`src/main/resources/static` is git-ignored and Gradle does not build it, so a fresh checkout has no UI - `/` then
+redirects to Swagger UI. Rebuild after pulling UI changes.
+
+```bash
+cd webapp
+npm ci
+npm run build
+```
+
 ## Poking at the design
 
 A mix of vertical-slices, screaming and semi-clean architecture.
@@ -47,7 +57,7 @@ needs it.
 
 ### Coupon Redemption
 
-The main explored business feature in here is protection against race condition while redeeming a coupon.
+The main explored business feature in here is handling race conditions while redeeming a coupon.
 
 Redemption uses an atomic `UPDATE` for row reservation:
 
@@ -65,7 +75,7 @@ fun attemptToRedeemInternal(code: String): Int
 ```
 
 Zero rows affected means coupon exhausted or at limit, so transaction rolled back. Otherwise, concurrent transactions
-will wait upon reaching this method until current one concludes.
+will wait upon reaching this method until the current one concludes.
 
 ## Dependencies
 

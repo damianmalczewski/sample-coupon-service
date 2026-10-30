@@ -24,3 +24,14 @@ updates:
         update-types:
           - "version-update:semver-major"
       - dependency-name: "gradle-wrapper"
+
+  - package-ecosystem: "npm"
+    directory: "/webapp"
+    schedule:
+      interval: "monthly"
+    target-branch: main
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 3
+    allow:
+      - dependency-type: "direct"

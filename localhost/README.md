@@ -33,6 +33,18 @@ WireMock stub and seeds sample data:
 
 The application listens on `http://localhost:8080`.
 
+The [web UI](../webapp) is not there by default - its build output in `src/main/resources/static` is git-ignored and
+Gradle does not build it, so `/` redirects to Swagger UI. Build it by hand (needs Node.js), worth doing once after
+checkout and again after pulling UI changes:
+
+```bash
+cd webapp
+npm ci
+npm run build
+```
+
+For working on the UI itself, use the dev server instead - see [`webapp/`](../webapp).
+
 ## Seed data
 
 The `local` profile loads sample coupons from [`db/seed`](db/seed) on startup. Seed scripts are Flyway repeatable

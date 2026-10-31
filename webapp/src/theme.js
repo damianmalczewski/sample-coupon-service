@@ -1,37 +1,52 @@
-import { ref, watchEffect } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 
 // same key and resolution as the inline script in index.html, which applies the theme before first paint
 const STORAGE_KEY = 'theme';
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 
-function storedTheme() {
+function storedPreference() {
   try {
     const value = localStorage.getItem(STORAGE_KEY);
-    return value === 'light' || value === 'dark' ? value : null;
+    return value === 'light' || value === 'dark' ? value : 'system';
   } catch {
-    return null;
+    return 'system';
   }
 }
 
-const systemTheme = () => (systemDark.matches ? 'dark' : 'light');
-
-export const theme = ref(storedTheme() ?? systemTheme());
-
-// follow the system until the user picks a theme
+const systemTheme = ref(systemDark.matches ? 'dark' : 'light');
 systemDark.addEventListener('change', () => {
-  if (storedTheme() === null) {
-    theme.value = systemTheme();
-  }
+  systemTheme.value = systemDark.matches ? 'dark' : 'light';
 });
+
+/** What the user picked: `light`, `dark` or `system` (default, follows the OS setting). */
+export const preference = ref(storedPreference());
+
+/** Theme in effect, `light` or `dark`. */
+export const theme = computed(() =>
+  preference.value === 'system' ? systemTheme.value : preference.value,
+);
 
 watchEffect(() => {
   document.documentElement.dataset.theme = theme.value;
 });
 
-export function toggleTheme() {
-  theme.value = theme.value === 'dark' ? 'light' : 'dark';
+/**
+ * Cycles system, then the system theme set explicitly, then the other one - e.g. on a dark OS: system, dark, light.
+ */
+export function cyclePreference() {
+  const system = systemTheme.value;
+  const order = ['system', system, system === 'dark' ? 'light' : 'dark'];
+  setPreference(order[(order.indexOf(preference.value) + 1) % order.length]);
+}
+
+function setPreference(value) {
+  preference.value = value;
   try {
-    localStorage.setItem(STORAGE_KEY, theme.value);
+    if (value === 'system') {
+      localStorage.removeItem(STORAGE_KEY);
+    } else {
+      localStorage.setItem(STORAGE_KEY, value);
+    }
   } catch {
     // storage unavailable, the choice lasts until reload
   }

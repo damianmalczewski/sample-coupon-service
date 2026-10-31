@@ -102,6 +102,7 @@ class CouponController(
           code = code,
           usageLimit = usageLimit,
           usageCount = usageCount,
+          countryCode = countryCode,
           createdAt = createdAt,
       )
 
@@ -142,6 +143,7 @@ data class CouponListItem(
     @Schema(example = "SUMMER2026") val code: String,
     @Schema(example = "5") val usageLimit: Int,
     @Schema(example = "2") val usageCount: Int,
+    @Schema(example = "PL") val countryCode: String,
     @Schema(example = "2026-06-26T12:33:42Z") val createdAt: Instant,
 )
 

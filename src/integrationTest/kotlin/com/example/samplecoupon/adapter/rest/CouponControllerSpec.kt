@@ -69,7 +69,8 @@ class CouponControllerSpec(restClient: RestTestClient, couponRepository: CouponJ
                   val content = body!!["content"] as List<*>
                   content.map { (it as Map<*, *>)["code"] } shouldBe listOf("SPRING")
                   (content.single() as Map<*, *>).keys shouldBe
-                      setOf("id", "code", "usageLimit", "usageCount", "createdAt")
+                      setOf("id", "code", "usageLimit", "usageCount", "countryCode", "createdAt")
+                  (content.single() as Map<*, *>)["countryCode"] shouldBe "GB"
                   body["totalElements"] shouldBe 1
                 }
               }

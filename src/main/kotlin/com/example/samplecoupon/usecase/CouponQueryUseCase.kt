@@ -27,6 +27,7 @@ class CouponQueryUseCase(private val couponRepository: CouponRepository) {
                   code = it.code,
                   usageLimit = it.usageLimit,
                   usageCount = it.usageCount,
+                  countryCode = it.countryCode,
                   createdAt = it.createdAt!!,
               )
             },
@@ -47,5 +48,6 @@ data class CouponListItemDto(
     val code: String,
     val usageLimit: Int,
     val usageCount: Int,
+    val countryCode: String,
     val createdAt: Instant,
 )

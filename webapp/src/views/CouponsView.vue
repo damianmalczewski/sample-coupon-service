@@ -105,6 +105,7 @@ onMounted(load);
       <thead>
         <tr>
           <th>Code</th>
+          <th>Country</th>
           <th class="num">Used</th>
           <th>Created</th>
           <th></th>
@@ -113,6 +114,7 @@ onMounted(load);
       <tbody>
         <tr v-for="coupon in coupons.content" :key="coupon.id">
           <td class="mono">{{ coupon.code }}</td>
+          <td class="mono">{{ coupon.countryCode }}</td>
           <td class="num">{{ coupon.usageCount }} / {{ coupon.usageLimit }}</td>
           <td class="muted">{{ new Date(coupon.createdAt).toLocaleString() }}</td>
           <td class="num">
@@ -120,7 +122,7 @@ onMounted(load);
           </td>
         </tr>
         <tr v-if="!loading && coupons.content.length === 0">
-          <td colspan="4" class="muted">No coupons</td>
+          <td colspan="5" class="muted">No coupons</td>
         </tr>
       </tbody>
     </table>

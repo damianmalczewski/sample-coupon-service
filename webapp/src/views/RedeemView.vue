@@ -1,7 +1,7 @@
 <script setup>
-import { reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { describeError, redeemCoupon } from '../api.js';
+import { describeError, listCoupons, redeemCoupon } from '../api.js';
 
 const route = useRoute();
 
@@ -10,6 +10,42 @@ const submitting = ref(false);
 const result = ref(null);
 
 const randomUuid = () => crypto.randomUUID();
+
+// preview of the coupon behind the entered code: null while unknown, false when there is none
+const coupon = ref(null);
+const exhausted = computed(
+  () => coupon.value && coupon.value.usageCount >= coupon.value.usageLimit,
+);
+let lookupSeq = 0;
+
+async function lookupCoupon() {
+  const seq = ++lookupSeq;
+  const code = form.code.trim();
+  if (!/^[a-zA-Z0-9]+$/.test(code)) {
+    coupon.value = null;
+    return;
+  }
+  try {
+    const page = await listCoupons({ page: 0, size: 1, code });
+    if (seq === lookupSeq) {
+      coupon.value = page.content[0] ?? false;
+    }
+  } catch {
+    if (seq === lookupSeq) {
+      coupon.value = null;
+    }
+  }
+}
+
+let lookupTimer;
+watch(
+  () => form.code,
+  () => {
+    clearTimeout(lookupTimer);
+    lookupTimer = setTimeout(lookupCoupon, 300);
+  },
+);
+onMounted(lookupCoupon);
 
 async function submit() {
   submitting.value = true;
@@ -21,6 +57,7 @@ async function submit() {
       requestId: form.requestId.trim() || undefined,
     });
     result.value = { ok: true, text: `Redeemed, request ${response.requestId}` };
+    lookupCoupon();
   } catch (error) {
     const code = error.problem?.code ? `${error.problem.code}: ` : '';
     result.value = { ok: false, text: code + describeError(error) };
@@ -37,6 +74,11 @@ async function submit() {
       <label>
         Code
         <input v-model="form.code" required maxlength="255" pattern="[a-zA-Z0-9]+" />
+        <span v-if="coupon" class="muted">
+          Country {{ coupon.countryCode }} · used {{ coupon.usageCount }} / {{ coupon.usageLimit }}
+          <span v-if="exhausted" class="error">· limit reached</span>
+        </span>
+        <span v-else-if="coupon === false" class="muted">No coupon with this code</span>
       </label>
       <label>
         User ID

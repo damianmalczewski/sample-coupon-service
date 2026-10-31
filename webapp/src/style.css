@@ -70,7 +70,7 @@ nav a.router-link-exact-active {
   font-weight: 600;
 }
 
-.theme-toggle {
+.theme-switch {
   margin-left: auto;
   display: flex;
   padding: 4px;
@@ -79,11 +79,11 @@ nav a.router-link-exact-active {
   color: var(--muted);
 }
 
-.theme-toggle:hover {
+.theme-switch:hover {
   color: var(--fg);
 }
 
-.theme-toggle svg {
+.theme-switch svg {
   width: 18px;
   height: 18px;
   fill: none;

@@ -38,7 +38,7 @@ Responses:
 - `size` - page size, default `20`, between 1 and 500
 - `code` - optional filter, 1-255 alphanumeric characters; exact match, case-insensitive
 
-Coupons are ordered by creation time, oldest first. List items do not include `countryCode`.
+Coupons are ordered by creation time, oldest first.
 
 ```json
 {
@@ -48,6 +48,7 @@ Coupons are ordered by creation time, oldest first. List items do not include `c
       "code": "SUMMER2026",
       "usageLimit": 5,
       "usageCount": 2,
+      "countryCode": "PL",
       "createdAt": "2026-06-26T12:33:42Z"
     }
   ],

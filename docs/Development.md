@@ -80,11 +80,12 @@ GitHub Actions workflows in `.github/workflows/`:
 - **`ci.yml`** - on push and PR to `main`, weekly and manually. Builds and tests on Java 25, uploads coverage,
   auto-merges Dependabot PRs.
 - **`release.yml`** - manual, choosing patch, minor or major. Computes the version, runs CI, pushes the Docker image to
-  `ghcr.io`, tags `vX.Y.Z` and creates a GitHub release.
+  `ghcr.io`, tags `vX.Y.Z` and creates a GitHub release with the exec jar attached.
 - **`rebuild.yml`** - weekly (Saturday 12:00 UTC) and manually. Rebuilds released images on a fresh base image, one
   job per version: the highest patch of each `X.Y` line listed in `.github/utils/supported_versions` and
   `.github/utils/legacy_versions` (both optional, the newest line stands in for a missing `supported_versions`). The
-  jar is reused from the released image, the tags stay the same - only the highest release gets `latest`.
+  jar is the one attached to the GitHub release (taken from the released image for releases without one), the tags
+  stay the same - only the highest release gets `latest`.
 - **`wiki.yml`** - on push to `main` touching `docs/`, and manually. Publishes `docs/` to the GitHub wiki.
 
 Releases follow the cactus model: `main` holds the newest version line, older lines get patches on `release/X.Y.x`

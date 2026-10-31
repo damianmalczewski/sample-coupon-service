@@ -11,7 +11,7 @@
 # 3. Publish - builds the Docker image from that jar and pushes it to ghcr.io as X.Y.Z and X.Y, as X only when it is
 #    the highest release of that major, and as latest only from main. Then creates the annotated vX.Y.Z git tag
 #    ("Release X.Y.Z") and GitHub release (marked as latest only from main) with notes listing the commits since the
-#    previous release on the same branch.
+#    previous release on the same branch, and the exec jar attached (Rebuild Images builds from it).
 #
 # Git tags are prefixed with "v", image tags are not. A release/X.Y.x branch runs its own copy of this workflow and of
 # ci.yml, so it needs their current versions.
@@ -247,4 +247,5 @@ jobs:
             --verify-tag \
             --title "$TAG" \
             --latest="$IS_LATEST" \
-            --notes-file release-notes.md
+            --notes-file release-notes.md \
+            "build/libs/sample-coupon-service-$VERSION-exec.jar"

@@ -6,7 +6,8 @@
 #    file is optional; without supported_versions the newest version line is taken in its place. Lines listed twice are
 #    rebuilt once, a listed line without any release is skipped with a warning.
 # 2. Rebuild - one job per picked version, run one after another from the lowest version. Checks out its vX.Y.Z tag,
-#    extracts the jar from the X.Y.Z image, builds the image from the tag's Dockerfile on a freshly pulled base image
+#    downloads the exec jar attached to its GitHub release (releases made before jars were attached fall back to the
+#    jar in the X.Y.Z image), builds the image from the tag's Dockerfile on a freshly pulled base image
 #    and pushes it as X.Y.Z and X.Y, as X only when it is the highest release of that major, and as latest only when it
 #    is the highest release overall - the same tags the Release workflow gave it.
 #
@@ -152,12 +153,15 @@ jobs:
 
           echo "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
 
-          echo "::group::Extract jar from $image:$VERSION"
-          docker pull "$image:$VERSION"
-          container=$(docker create "$image:$VERSION")
+          echo "::group::Download jar from release v$VERSION"
           mkdir -p build/libs
-          docker cp "$container:/app/sample-coupon-service.jar" "$jar"
-          docker rm "$container"
+          if ! gh release download "v$VERSION" --pattern "${jar##*/}" --dir build/libs; then
+            echo "::warning::Release v$VERSION has no ${jar##*/} attached, extracting the jar from $image:$VERSION"
+            docker pull "$image:$VERSION"
+            container=$(docker create "$image:$VERSION")
+            docker cp "$container:/app/sample-coupon-service.jar" "$jar"
+            docker rm "$container"
+          fi
           ls -l build/libs
           echo "::endgroup::"
 

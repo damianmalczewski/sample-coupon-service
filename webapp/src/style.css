@@ -70,8 +70,8 @@ nav a.router-link-exact-active {
   font-weight: 600;
 }
 
-.theme-switch {
-  margin-left: auto;
+/* icon buttons and links on the right of the navigation */
+.nav-icon {
   display: flex;
   padding: 4px;
   border: none;
@@ -79,11 +79,17 @@ nav a.router-link-exact-active {
   color: var(--muted);
 }
 
-.theme-switch:hover {
+.nav-end {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+nav .nav-icon:hover {
   color: var(--fg);
 }
 
-.theme-switch svg {
+.nav-icon svg {
   width: 18px;
   height: 18px;
   fill: none;

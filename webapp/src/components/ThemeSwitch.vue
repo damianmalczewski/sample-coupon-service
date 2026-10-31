@@ -10,7 +10,7 @@ const label = computed(() =>
 <template>
   <button
     type="button"
-    class="theme-switch"
+    class="nav-icon"
     :title="label"
     :aria-label="`${label}, click to change`"
     @click="cyclePreference"

@@ -1,7 +1,7 @@
-package com.example.samplecoupon.infra
+package com.example.samplecoupon.infrastructure
 
-import com.example.samplecoupon.infra.cache.JitteredTtl
-import com.example.samplecoupon.infra.cache.TwoLevelCacheManager
+import com.example.samplecoupon.infrastructure.cache.JitteredTtl
+import com.example.samplecoupon.infrastructure.cache.TwoLevelCacheManager
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.EnableCaching

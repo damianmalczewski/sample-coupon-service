@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra
+package com.example.samplecoupon.infrastructure
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered

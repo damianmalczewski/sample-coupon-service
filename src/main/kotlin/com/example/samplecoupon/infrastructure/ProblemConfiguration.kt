@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra
+package com.example.samplecoupon.infrastructure
 
 import com.example.samplecoupon.common.DomainException
 import com.example.samplecoupon.common.ErrorCategory

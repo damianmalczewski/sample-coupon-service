@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra
+package com.example.samplecoupon.infrastructure
 
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.PathItem

@@ -1,9 +1,9 @@
-package com.example.samplecoupon.infra.geolocation
+package com.example.samplecoupon.infrastructure.geolocation
 
 import com.example.samplecoupon.common.CommonException
 import com.example.samplecoupon.domain.GeoLocation
 import com.example.samplecoupon.domain.GeoLocationClient
-import com.example.samplecoupon.infra.GeoLocationProperties
+import com.example.samplecoupon.infrastructure.GeoLocationProperties
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient

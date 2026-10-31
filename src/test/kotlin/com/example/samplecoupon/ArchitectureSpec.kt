@@ -27,7 +27,11 @@ class ArchitectureSpec :
                   .resideInAPackage("$ROOT.domain..")
                   .should()
                   .dependOnClassesThat()
-                  .resideInAnyPackage("$ROOT.adapter..", "$ROOT.infra..", "$ROOT.usecase..")
+                  .resideInAnyPackage(
+                      "$ROOT.adapter..",
+                      "$ROOT.infrastructure..",
+                      "$ROOT.usecase..",
+                  )
                   .check(classes)
             }
 
@@ -37,14 +41,14 @@ class ArchitectureSpec :
                   .resideInAPackage("$ROOT.usecase..")
                   .should()
                   .dependOnClassesThat()
-                  .resideInAnyPackage("$ROOT.adapter..", "$ROOT.infra..")
+                  .resideInAnyPackage("$ROOT.adapter..", "$ROOT.infrastructure..")
                   .check(classes)
             }
 
             Then("infra does not depend on adapter or usecase") {
               noClasses()
                   .that()
-                  .resideInAPackage("$ROOT.infra..")
+                  .resideInAPackage("$ROOT.infrastructure..")
                   .should()
                   .dependOnClassesThat()
                   .resideInAnyPackage("$ROOT.adapter..", "$ROOT.usecase..")
@@ -57,7 +61,7 @@ class ArchitectureSpec :
                   .resideInAPackage("$ROOT.adapter..")
                   .should()
                   .dependOnClassesThat()
-                  .resideInAnyPackage("$ROOT.infra..")
+                  .resideInAnyPackage("$ROOT.infrastructure..")
                   .check(classes)
             }
 
@@ -70,7 +74,7 @@ class ArchitectureSpec :
                   .resideInAnyPackage(
                       "$ROOT.domain..",
                       "$ROOT.usecase..",
-                      "$ROOT.infra..",
+                      "$ROOT.infrastructure..",
                       "$ROOT.adapter..",
                   )
                   .check(classes)
@@ -101,7 +105,7 @@ class ArchitectureSpec :
                   .that()
                   .areAnnotatedWith<Configuration>()
                   .should()
-                  .resideInAPackage("$ROOT.infra..")
+                  .resideInAPackage("$ROOT.infrastructure..")
                   .check(classes)
             }
           }

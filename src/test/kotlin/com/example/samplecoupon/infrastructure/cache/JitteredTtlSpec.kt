@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.cache
+package com.example.samplecoupon.infrastructure.cache
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldHaveAtLeastSize

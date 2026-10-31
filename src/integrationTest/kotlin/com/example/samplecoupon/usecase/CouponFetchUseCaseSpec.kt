@@ -4,7 +4,7 @@ import com.example.samplecoupon.ApplicationTest
 import com.example.samplecoupon.beforeEachGiven
 import com.example.samplecoupon.domain.Coupon
 import com.example.samplecoupon.domain.CouponException
-import com.example.samplecoupon.infra.repository.CouponJpaRepository
+import com.example.samplecoupon.infrastructure.repository.CouponJpaRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe

@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.cache
+package com.example.samplecoupon.infrastructure.cache
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.kotest.assertions.nondeterministic.eventually

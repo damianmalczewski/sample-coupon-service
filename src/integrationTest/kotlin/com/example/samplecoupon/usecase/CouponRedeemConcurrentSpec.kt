@@ -5,8 +5,8 @@ import com.example.samplecoupon.beforeEachGiven
 import com.example.samplecoupon.domain.Coupon
 import com.example.samplecoupon.domain.CouponException
 import com.example.samplecoupon.domain.GeoLocation
-import com.example.samplecoupon.infra.repository.CouponJpaRepository
-import com.example.samplecoupon.infra.repository.CouponRedemptionJpaRepository
+import com.example.samplecoupon.infrastructure.repository.CouponJpaRepository
+import com.example.samplecoupon.infrastructure.repository.CouponRedemptionJpaRepository
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe

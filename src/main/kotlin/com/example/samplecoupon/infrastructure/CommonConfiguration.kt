@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra
+package com.example.samplecoupon.infrastructure
 
 import java.net.http.HttpClient
 import java.time.Clock

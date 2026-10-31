@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.repository
+package com.example.samplecoupon.infrastructure.repository
 
 import com.example.samplecoupon.domain.Coupon
 import com.example.samplecoupon.domain.CouponException

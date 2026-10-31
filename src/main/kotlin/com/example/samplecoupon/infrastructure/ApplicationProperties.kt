@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra
+package com.example.samplecoupon.infrastructure
 
 import jakarta.validation.constraints.Min
 import java.time.Duration

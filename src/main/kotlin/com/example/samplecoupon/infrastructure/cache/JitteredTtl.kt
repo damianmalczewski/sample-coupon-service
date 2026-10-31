@@ -1,4 +1,4 @@
-package com.example.samplecoupon.infra.cache
+package com.example.samplecoupon.infrastructure.cache
 
 import java.time.Duration
 import java.util.concurrent.ThreadLocalRandom

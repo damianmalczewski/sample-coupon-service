@@ -5,8 +5,8 @@ import com.example.samplecoupon.beforeEachGiven
 import com.example.samplecoupon.domain.Coupon
 import com.example.samplecoupon.domain.CouponError
 import com.example.samplecoupon.domain.CouponRedemption
-import com.example.samplecoupon.infra.repository.CouponJpaRepository
-import com.example.samplecoupon.infra.repository.CouponRedemptionJpaRepository
+import com.example.samplecoupon.infrastructure.repository.CouponJpaRepository
+import com.example.samplecoupon.infrastructure.repository.CouponRedemptionJpaRepository
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get

@@ -1,7 +1,7 @@
-package com.example.samplecoupon.infra
+package com.example.samplecoupon.infrastructure
 
-import com.example.samplecoupon.infra.cache.JitteredTtl
-import com.example.samplecoupon.infra.cache.TwoLevelCache
+import com.example.samplecoupon.infrastructure.cache.JitteredTtl
+import com.example.samplecoupon.infrastructure.cache.TwoLevelCache
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -26,7 +26,9 @@ class RedisCacheConfigurationSpec :
               val cacheManager =
                   RedisCacheConfiguration()
                       .twoLevelCacheManager(LettuceConnectionFactory(), properties)
-                      .apply { afterPropertiesSet() } // as Spring does for bean
+                      .apply {
+                        afterPropertiesSet()
+                      } // as Spring does for bean
 
               Then("geolocation cache is pre-configured") {
                 cacheManager.cacheNames shouldContain "ipAddrGeoLocation"

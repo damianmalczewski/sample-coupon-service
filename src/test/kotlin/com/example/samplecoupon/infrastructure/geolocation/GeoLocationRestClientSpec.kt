@@ -1,8 +1,8 @@
-package com.example.samplecoupon.infra.geolocation
+package com.example.samplecoupon.infrastructure.geolocation
 
 import com.example.samplecoupon.beforeEachGiven
 import com.example.samplecoupon.common.CommonException
-import com.example.samplecoupon.infra.GeoLocationProperties
+import com.example.samplecoupon.infrastructure.GeoLocationProperties
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get

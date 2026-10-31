@@ -1,6 +1,6 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import CouponsView from './views/CouponsView.vue'
-import RedeemView from './views/RedeemView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import CouponsView from './views/CouponsView.vue';
+import RedeemView from './views/RedeemView.vue';
 
 export default createRouter({
   history: createWebHistory(),
@@ -9,4 +9,4 @@ export default createRouter({
     { path: '/redeem', component: RedeemView },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
-})
+});

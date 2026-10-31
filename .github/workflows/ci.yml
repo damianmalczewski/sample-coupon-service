@@ -5,7 +5,7 @@ on:
   workflow_call:
     inputs:
       version:
-        description: "Release version to build with; when set, the exec jar is uploaded as an artifact"
+        description: "Used by call from release.yml; release version to build with; when set, the exec jar is uploaded as an artifact."
         type: string
         required: false
         default: ""
@@ -78,6 +78,7 @@ jobs:
         working-directory: webapp
         run: |
           npm ci
+          npm run prettier:check
           npm run build
 
       - name: Gradle Build

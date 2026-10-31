@@ -22,6 +22,9 @@ to proxy elsewhere, e.g. `API_TARGET=http://localhost:18080 npm run dev`.
 `npm ci` installs exactly what `package-lock.json` pins and never changes it. Use `npm install <package>` or
 `npm update` only to change dependencies, and commit the updated lock file.
 
+Code is formatted with [Prettier](https://prettier.io): `npm run prettier` formats, `npm run prettier:check` only
+reports (CI runs it before the build).
+
 ## Build
 
 The build is manual - Gradle does not run it:

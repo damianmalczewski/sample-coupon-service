@@ -35,3 +35,7 @@ updates:
       default-days: 3
     allow:
       - dependency-type: "direct"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"

@@ -14,13 +14,13 @@ import org.springframework.data.jpa.repository.Query
 
 interface CouponJpaRepository : CouponRepository, JpaRepository<Coupon, UUID> {
 
-  @Query("SELECT c FROM Coupon c ORDER BY c.createdAt ASC")
+  @Query("SELECT c FROM Coupon c ORDER BY $AVAILABLE_FIRST, c.code ASC")
   override fun findAll(pageable: Pageable): Page<Coupon>
 
   override fun findAllByCode(code: String, pageable: Pageable): Page<Coupon> =
       findAllByCodeInternal(code.uppercase(), pageable)
 
-  @Query("SELECT c FROM Coupon c WHERE c.code = :code ORDER BY c.createdAt ASC")
+  @Query("SELECT c FROM Coupon c WHERE c.code = :code ORDER BY $AVAILABLE_FIRST, c.code ASC")
   fun findAllByCodeInternal(code: String, pageable: Pageable): Page<Coupon>
 
   override fun fetchById(id: UUID): Coupon {
@@ -67,5 +67,8 @@ interface CouponJpaRepository : CouponRepository, JpaRepository<Coupon, UUID> {
 
   private companion object {
     private const val UK_COUPON_CODE = "uk_coupons_coupon_code"
+
+    /** Sorts coupons with usage left before exhausted ones. */
+    private const val AVAILABLE_FIRST = "CASE WHEN c.usageCount < c.usageLimit THEN 0 ELSE 1 END"
   }
 }

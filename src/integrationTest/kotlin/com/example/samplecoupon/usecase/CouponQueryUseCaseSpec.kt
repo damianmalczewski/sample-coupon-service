@@ -42,8 +42,8 @@ class CouponQueryUseCaseSpec(couponRepository: CouponJpaRepository, useCase: Cou
               Then("it maps the first coupon to DTO") {
                 val first = result.content[0]
                 first.id.shouldNotBeNull()
-                first.code shouldBe "WINTER"
-                first.usageLimit shouldBe 10
+                first.code shouldBe "AUTUMN"
+                first.usageLimit shouldBe 40
                 first.usageCount shouldBe 0
                 first.createdAt.shouldNotBeNull()
               }
@@ -52,9 +52,9 @@ class CouponQueryUseCaseSpec(couponRepository: CouponJpaRepository, useCase: Cou
             When("querying all coupons in a single page") {
               val result = useCase.queryCoupons(CouponsQuery(PageRequest.of(0, 10)))
 
-              Then("it returns all coupons in insertion order") {
+              Then("it returns all coupons alphabetically") {
                 result.content.map { it.code } shouldBe
-                    listOf("WINTER", "SPRING", "SUMMER", "AUTUMN", "HOLIDAY")
+                    listOf("AUTUMN", "HOLIDAY", "SPRING", "SUMMER", "WINTER")
                 result.page shouldBe 0
                 result.size shouldBe 10
                 result.totalElements shouldBe 5L
@@ -93,6 +93,25 @@ class CouponQueryUseCaseSpec(couponRepository: CouponJpaRepository, useCase: Cou
                 result.page shouldBe page
                 result.size shouldBe size
                 result.totalElements shouldBe 5L
+              }
+            }
+          }
+
+          Given("available and exhausted coupons") {
+            couponRepository.saveAll(
+                listOf(
+                    Coupon(code = "DELTA", usageLimit = 5, usageCount = 4, countryCode = "PL"),
+                    Coupon(code = "ALPHA", usageLimit = 1, usageCount = 1, countryCode = "PL"),
+                    Coupon(code = "CHARLIE", usageLimit = 3, usageCount = 3, countryCode = "PL"),
+                    Coupon(code = "BRAVO", usageLimit = 2, countryCode = "PL"),
+                ),
+            )
+
+            When("querying coupons") {
+              val result = useCase.queryCoupons(CouponsQuery(PageRequest.of(0, 10)))
+
+              Then("it returns available coupons first, each group alphabetically") {
+                result.content.map { it.code } shouldBe listOf("BRAVO", "DELTA", "ALPHA", "CHARLIE")
               }
             }
           }

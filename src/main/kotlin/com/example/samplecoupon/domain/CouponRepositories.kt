@@ -6,12 +6,12 @@ import org.springframework.data.domain.Pageable
 
 interface CouponRepository {
 
-  /** Returns coupons ordered by creation date ascending. */
+  /** Returns coupons with usage left first, then exhausted ones, each alphabetically by code. */
   fun findAll(pageable: Pageable): Page<Coupon>
 
   /**
-   * Returns coupons matching given code, ordered by creation date ascending. Lookup is
-   * case-insensitive; code matched uppercase. As codes are unique, page holds at most one coupon.
+   * Returns coupons matching given code, ordered as [findAll]. Lookup is case-insensitive; code
+   * matched uppercase. As codes are unique, page holds at most one coupon.
    */
   fun findAllByCode(code: String, pageable: Pageable): Page<Coupon>
 

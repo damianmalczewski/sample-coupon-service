@@ -38,7 +38,8 @@ Responses:
 - `size` - page size, default `20`, between 1 and 500
 - `code` - optional filter, 1-255 alphanumeric characters; exact match, case-insensitive
 
-Coupons are ordered by creation time, oldest first.
+Coupons with usage left come first, exhausted ones (usage count at the limit) after them, each group alphabetically
+by code.
 
 ```json
 {

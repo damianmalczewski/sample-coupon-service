@@ -149,16 +149,16 @@ kover {
     }
 }
 
-tasks.named<Task>("check").configure {
+tasks.named<Task>("check") {
     finalizedBy(tasks.named("koverHtmlReport"), tasks.named("koverXmlReport"))
 }
 
-tasks.named<Jar>("jar").configure {
+tasks.named<Jar>("jar") {
     enabled = true
     archiveClassifier = ""
 }
 
-tasks.named<BootJar>("bootJar").configure {
+tasks.named<BootJar>("bootJar") {
     archiveClassifier = "exec"
 }
 

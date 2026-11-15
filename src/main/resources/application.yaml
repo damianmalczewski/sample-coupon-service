@@ -76,6 +76,12 @@ problem4j:
   resolver-caching:
     enabled: true
 
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 sample-coupon-service:
   clock:
     zone: UTC

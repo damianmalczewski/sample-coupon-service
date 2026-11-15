@@ -94,7 +94,8 @@ its own transaction (`REQUIRES_NEW`), `read-only` for queries. The `open-session
   `sample-coupon-service.rest.controller.exceptions`, tagged with `status`, `exception` and `code`.
 - **Tracing:** each request gets a trace id, put into the logging MDC as `traceId` and returned as the problem's
   `instance`.
-- **Logs:** errors are logged at `WARN` (4xx) or `ERROR` (5xx). The Docker image logs ECS JSON by default; set
+- **Logs:** every HTTP request is logged once by `RequestLoggingFilter` (method, path, status, duration; `/actuator`
+  excluded) at `INFO`, `WARN` (4xx) or `ERROR` (5xx). Failed requests add the `exception` and `code`. The Docker image logs ECS JSON by default; set
   `LOGGING_STRUCTURED_FORMAT_CONSOLE` to empty for plain text.
 
 ## Scalability

@@ -11,17 +11,17 @@ import io.github.problem4j.spring.web.resolver.problemResolver
 import io.github.problem4j.spring.webmvc.ProblemInspector
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
+import java.lang.Exception
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.Year
 import java.time.YearMonth
 import java.time.temporal.Temporal
 import java.util.UUID
-import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatusCode
+import org.springframework.web.context.request.RequestAttributes
 
 @Configuration
 class ProblemConfiguration {
@@ -35,32 +35,24 @@ class ProblemConfiguration {
       }
 
   @Bean
-  fun loggingProblemInspector(meterRegistry: MeterRegistry) =
-      ProblemInspector { _, problem, ex, _, _, _ ->
-        val tags = mutableListOf<Tag>()
+  fun metricsProblemInspector(meterRegistry: MeterRegistry) =
+      ProblemInspector { _, problem, ex, _, _, request ->
+        val code = problem.extensions["code"]?.toString()
 
-        var builder =
-            if (problem.httpStatus.is5xxServerError) log.atError().setCause(ex) else log.atWarn()
-        builder =
-            builder
-                .addKeyValue("status", problem.httpStatus.value())
-                .addKeyValue("exception", ex.javaClass.simpleName)
-        tags.add(Tag.of("status", problem.httpStatus.value().toString()))
-        tags.add(Tag.of("exception", ex.javaClass.simpleName))
-
-        if (problem.extensions["code"] != null) {
-          builder = builder.addKeyValue("code", problem.extensions["code"])
-          tags.add(Tag.of("code", problem.extensions["code"].toString()))
-        } else {
-          tags.add(Tag.of("code", "UNKNOWN"))
+        request.setAttribute(
+            RequestLoggingFilter.EXCEPTION_ATTRIBUTE,
+            ex,
+            RequestAttributes.SCOPE_REQUEST,
+        )
+        if (code != null) {
+          request.setAttribute(
+              RequestLoggingFilter.CODE_ATTRIBUTE,
+              code,
+              RequestAttributes.SCOPE_REQUEST,
+          )
         }
 
-        if (log.isDebugEnabled) {
-          builder = builder.setCause(ex)
-        }
-
-        meterRegistry.counter("sample-coupon-service.rest.controller.exceptions", tags).increment()
-        builder.log("An exception occurred within @RestController stack")
+        incrementProblemsCounter(meterRegistry, problem, ex, code)
       }
 
   @Bean
@@ -73,10 +65,6 @@ class ProblemConfiguration {
           TypeNameEntry(Year::class.java, "year"),
           TypeNameEntry(YearMonth::class.java, "year-month"),
       )
-
-  private companion object {
-    private val log = LoggerFactory.getLogger(ProblemConfiguration::class.java)
-  }
 }
 
 private val ErrorType.status: HttpStatus
@@ -88,5 +76,19 @@ private val ErrorType.status: HttpStatus
         ErrorCategory.INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR
       }
 
-private val Problem.httpStatus: HttpStatusCode
-  get() = HttpStatusCode.valueOf(status)
+private fun incrementProblemsCounter(
+    meterRegistry: MeterRegistry,
+    problem: Problem,
+    ex: Exception,
+    code: String?,
+) =
+    meterRegistry
+        .counter(
+            "sample-coupon-service.rest.controller.problems",
+            listOf(
+                Tag.of("status", problem.status.toString()),
+                Tag.of("exception", ex.javaClass.simpleName),
+                Tag.of("code", code ?: "UNKNOWN"),
+            ),
+        )
+        .increment()

@@ -52,7 +52,7 @@ dependencies {
     implementation(libs.spring.boot.starter.log4j2)
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.boot.starter.webmvc)
-    implementation(libs.micrometer.registry.prometheus)
+    implementation(libs.spring.boot.micrometer.tracing.opentelemetry)
 
     implementation(libs.problem4j.spring.webmvc)
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
@@ -60,6 +60,8 @@ dependencies {
     implementation(libs.caffeine)
     implementation(libs.flyway.database.postgresql)
 
+    runtimeOnly(libs.micrometer.registry.prometheus)
+    runtimeOnly(libs.micrometer.tracing.bridge.otel)
     runtimeOnly(libs.postgresql)
 
     testImplementation(platform(libs.junit.bom))

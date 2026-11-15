@@ -4,12 +4,11 @@ import com.example.samplecoupon.common.DomainException
 import com.example.samplecoupon.common.ErrorCategory
 import com.example.samplecoupon.common.ErrorType
 import io.github.problem4j.core.Problem
-import io.github.problem4j.spring.web.ProblemContextSettings
+import io.github.problem4j.spring.web.SimpleTypeNameMapper
+import io.github.problem4j.spring.web.TypeNameEntry
 import io.github.problem4j.spring.web.TypeNameMapper
 import io.github.problem4j.spring.web.resolver.problemResolver
-import io.github.problem4j.spring.web.simpleTypeNameMapper
-import io.github.problem4j.spring.webmvc.adviceWebMvcInspector
-import io.github.problem4j.spring.webmvc.problemContextWebMvcFilter
+import io.github.problem4j.spring.webmvc.ProblemInspector
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import java.time.LocalDate
@@ -19,7 +18,6 @@ import java.time.YearMonth
 import java.time.temporal.Temporal
 import java.util.UUID
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -37,48 +35,43 @@ class ProblemConfiguration {
       }
 
   @Bean
-  fun loggingProblemInspector(meterRegistry: MeterRegistry) = adviceWebMvcInspector { problem, ex ->
-    val tags = mutableListOf<Tag>()
+  fun loggingProblemInspector(meterRegistry: MeterRegistry) =
+      ProblemInspector { _, problem, ex, _, _, _ ->
+        val tags = mutableListOf<Tag>()
 
-    var builder = if (problem.httpStatus.is5xxServerError) log.atError() else log.atWarn()
-    builder =
-        builder
-            .addKeyValue("status", problem.httpStatus.value())
-            .addKeyValue("exception", ex.javaClass.name)
-    tags.add(Tag.of("status", problem.httpStatus.value().toString()))
-    tags.add(Tag.of("exception", ex.javaClass.name))
+        var builder =
+            if (problem.httpStatus.is5xxServerError) log.atError().setCause(ex) else log.atWarn()
+        builder =
+            builder
+                .addKeyValue("status", problem.httpStatus.value())
+                .addKeyValue("exception", ex.javaClass.simpleName)
+        tags.add(Tag.of("status", problem.httpStatus.value().toString()))
+        tags.add(Tag.of("exception", ex.javaClass.simpleName))
 
-    if (problem.extensions["code"] != null) {
-      builder = builder.addKeyValue("code", problem.extensions["code"])
-      tags.add(Tag.of("code", problem.extensions["code"].toString()))
-    } else {
-      tags.add(Tag.of("code", "UNKNOWN"))
-    }
+        if (problem.extensions["code"] != null) {
+          builder = builder.addKeyValue("code", problem.extensions["code"])
+          tags.add(Tag.of("code", problem.extensions["code"].toString()))
+        } else {
+          tags.add(Tag.of("code", "UNKNOWN"))
+        }
 
-    if (log.isDebugEnabled) {
-      builder = builder.setCause(ex)
-    }
+        if (log.isDebugEnabled) {
+          builder = builder.setCause(ex)
+        }
 
-    meterRegistry.counter("sample-coupon-service.rest.controller.exceptions", tags).increment()
-    builder.log("An exception occurred within @RestController stack")
-  }
-
-  @Bean
-  fun problemContextWebMvcFilter(settings: ProblemContextSettings) =
-      problemContextWebMvcFilter(settings) {
-        onContext { _, _, context -> MDC.put("traceId", context.get("traceId")) }
-        onComplete { _, _, _ -> MDC.remove("traceId") }
+        meterRegistry.counter("sample-coupon-service.rest.controller.exceptions", tags).increment()
+        builder.log("An exception occurred within @RestController stack")
       }
 
   @Bean
-  fun problemTypeNameMapper(): TypeNameMapper =
-      simpleTypeNameMapper(
-          UUID::class to "uuid",
-          Temporal::class to "date-time",
-          LocalDate::class to "date",
-          LocalTime::class to "time",
-          Year::class to "year",
-          YearMonth::class to "year-month",
+  fun typeNameMapper(): TypeNameMapper =
+      SimpleTypeNameMapper(
+          TypeNameEntry(UUID::class.java, "uuid"),
+          TypeNameEntry(Temporal::class.java, "date-time"),
+          TypeNameEntry(LocalDate::class.java, "date"),
+          TypeNameEntry(LocalTime::class.java, "time"),
+          TypeNameEntry(Year::class.java, "year"),
+          TypeNameEntry(YearMonth::class.java, "year-month"),
       )
 
   private companion object {

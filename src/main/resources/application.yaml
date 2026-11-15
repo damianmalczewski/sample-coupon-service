@@ -55,6 +55,14 @@ management:
       show-details: always
       probes:
         enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      consume: W3C
+      produce: []
+    baggage:
+      enabled: false
 
 logging:
   level:
@@ -62,7 +70,9 @@ logging:
 
 problem4j:
   detail-format: lowercase
-  instance-override: "{context.traceId}"
+  observation-errors: all
+  extension-overrides:
+    traceId: "{context.traceId}"
   resolver-caching:
     enabled: true
 

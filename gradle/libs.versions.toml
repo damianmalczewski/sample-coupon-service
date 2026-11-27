@@ -9,7 +9,7 @@ kover = "0.9.11"
 problem4j-spring = "3.1.0"
 spotless = "8.11.0"
 spring-boot = "4.2.0"
-springdoc-openapi = "3.2.0"
+springdoc-openapi = "3.2.1"
 testclock = "1.1.0"
 wiremock-spring-boot = "4.4.3"
 

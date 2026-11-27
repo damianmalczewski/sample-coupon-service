@@ -98,7 +98,7 @@ testing {
     // tests. They see the main and test outputs, and inherit the test dependencies.
     suites {
         val test = getByName<JvmTestSuite>("test")
-        register<JvmTestSuite>("integrationTest") {
+        register<JvmTestSuite>("testint") {
             targets {
                 all {
                     testTask.configure {
@@ -110,14 +110,14 @@ testing {
     }
 }
 
-configurations.getByName("integrationTestImplementation") {
+configurations.getByName("testintImplementation") {
     extendsFrom(configurations.testImplementation.get())
 }
-configurations.getByName("integrationTestRuntimeOnly") {
+configurations.getByName("testintRuntimeOnly") {
     extendsFrom(configurations.testRuntimeOnly.get())
 }
 
-sourceSets["integrationTest"].apply {
+sourceSets["testint"].apply {
     compileClasspath += sourceSets["main"].output + sourceSets["test"].output
     runtimeClasspath += sourceSets["main"].output + sourceSets["test"].output
 }
@@ -139,14 +139,11 @@ tasks.withType<Test>().configureEach {
 }
 
 kover {
-    // Kover instruments every `Test` task, so the test and integrationTest suites are merged into a single report under
-    // `build/reports/kover` without any extra wiring.
     currentProject {
         sources {
-            // Kover only excludes the `test` source set from the measured sources out of the box. The integrationTest
-            // suite is test code too, so it is excluded explicitly - otherwise the report would measure coverage of the
-            // tests themselves.
-            excludedSourceSets.add("integrationTest")
+            // Kover only excludes the `test` source set from the measured sources out of the box. The testint suite is
+            // test code too, so it is excluded explicitly - otherwise the report would measure coverage of the tests.
+            excludedSourceSets.add("testint")
         }
     }
 }
@@ -201,8 +198,8 @@ idea {
                     packageName = "com.example.samplecoupon"
                     vmParameters = "-Dspring.test.context.cache.maxSize=1"
                 }
-                create<JUnit>("Test [sample-coupon-service|integrationTest]") {
-                    moduleName = "sample-coupon-service.integrationTest"
+                create<JUnit>("Test [sample-coupon-service|testint]") {
+                    moduleName = "sample-coupon-service.testint"
                     workingDirectory = rootProject.rootDir.absolutePath
                     packageName = "com.example.samplecoupon"
                     vmParameters = "-Dspring.test.context.cache.maxSize=1"

@@ -50,7 +50,7 @@ Caching settings are explained in [Geolocation Caching](./Geolocation-Caching.md
 - **`local`** - local development against [`localhost/`](../localhost) dependencies: geolocation endpoint set to
   the WireMock stub at `http://localhost:1080`, sample data seeded from `localhost/db/seed`. Default profile, active
   when no other profile is set.
-- **`integrationTest`** - test-only. Disables caching and points geolocation at the test WireMock.
+- **`testint`** - test-only. Disables caching and points geolocation at the test WireMock.
 
 ## Docker image
 

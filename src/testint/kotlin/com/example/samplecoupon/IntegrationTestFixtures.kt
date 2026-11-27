@@ -24,7 +24,7 @@ import org.wiremock.spring.EnableWireMock
 @Retention(RUNTIME)
 @ApplyExtension(SpringExtension::class)
 @EnableWireMock(ConfigureWireMock(registerSpringBean = true, resetWireMockServer = false))
-@ActiveProfiles("integrationTest")
+@ActiveProfiles("testint")
 @Import(ApplicationTestConfiguration::class)
 @SpringBootTest(
     classes = [Application::class],

@@ -45,13 +45,13 @@ redirects to Swagger UI. CI builds the UI fresh before Gradle on every build, so
 ```bash
 ./gradlew                   # default tasks: format, build, both test suites, coverage
 ./gradlew test              # unit tests
-./gradlew integrationTest   # integration tests (needs Docker)
+./gradlew testint   # integration tests (needs Docker)
 ./gradlew spotlessApply     # format sources (ktfmt)
 ```
 
 - **`test`** (`src/test/kotlin`) - unit tests: architecture rules (`ArchitectureSpec`), caching, normalization,
   geolocation client.
-- **`integrationTest`** (`src/integrationTest/kotlin`) - the whole application against real PostgreSQL
+- **`testint`** (`src/testint/kotlin`) - the whole application against real PostgreSQL
   (Testcontainers), with WireMock standing in for geolocation: REST endpoints and use cases, including redemption
   concurrency.
 

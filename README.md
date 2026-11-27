@@ -31,7 +31,7 @@ Useful Gradle commands:
 ./gradlew test
 
 # Run integration tests only (Testcontainers)
-./gradlew integrationTest
+./gradlew testint
 ```
 
 For local development, build the [web UI](webapp) once by hand (needs Node.js). Its output in
